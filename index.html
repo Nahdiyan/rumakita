@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RumaKita - Manajemen Rumah Tangga</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <div class="max-w-4xl mx-auto p-6 mt-10">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-blue-600">🏠 RumaKita</h1>
+            <p class="text-gray-500">Sistem Pemantau Rumah Tangga Terpadu</p>
+        </header>
+
+        <!-- Form Input -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Tambah Data Keuangan</h2>
+            <form id="formKeuangan" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Tanggal</label>
+                    <input type="date" id="tanggal" required class="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Tipe</label>
+                    <select id="tipe" required class="w-full border p-2 rounded focus:ring-blue-500">
+                        <option value="Pemasukan">Pemasukan</option>
+                        <option value="Pengeluaran">Pengeluaran</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Kategori</label>
+                    <input type="text" id="kategori" placeholder="Cth: Dapur, Tagihan" required class="w-full border p-2 rounded focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Deskripsi</label>
+                    <input type="text" id="deskripsi" placeholder="Cth: Beli beras" required class="w-full border p-2 rounded focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Jumlah (Rp)</label>
+                    <input type="number" id="jumlah" required class="w-full border p-2 rounded focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Metode</label>
+                    <input type="text" id="metode" placeholder="Cth: Cash, Transfer" class="w-full border p-2 rounded focus:ring-blue-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-1">Catatan</label>
+                    <input type="text" id="catatan" class="w-full border p-2 rounded focus:ring-blue-500">
+                </div>
+                <div class="md:col-span-2 text-right">
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">Simpan ke Spreadsheet</button>
+                </div>
+            </form>
+            <p id="statusPesan" class="mt-4 text-sm font-medium text-center"></p>
+        </div>
+
+        <!-- Tabel Data -->
+        <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Data Keuangan Terbaru</h2>
+                <button onclick="loadData()" class="text-sm text-blue-600 hover:underline">🔄 Refresh</button>
+            </div>
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b">
+                        <th class="p-2 text-sm">Tanggal</th>
+                        <th class="p-2 text-sm">Tipe</th>
+                        <th class="p-2 text-sm">Kategori</th>
+                        <th class="p-2 text-sm">Deskripsi</th>
+                        <th class="p-2 text-sm text-right">Jumlah</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelData">
+                    <tr><td colspan="5" class="text-center p-4 text-gray-500">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // MASUKKAN URL APLIKASI WEB ANDA DARI LANGKAH 1 DI SINI
+        const API_URL = https://script.google.com/macros/s/AKfycbxMdNJqqHHSZi20qVlP0z4MHQzk7r47EZNWlnvWiMcc4h7BcKedEUPgskUppFotYzie/exec;
+
+        // Fungsi untuk mengambil data dari Spreadsheet
+        async function loadData() {
+            try {
+                const response = await fetch(`${API_URL}?sheet=Keuangan`);
+                const data = await response.json();
+                
+                // Urutkan dari yang terbaru (asumsi data bertambah ke bawah)
+                const recentData = data.slice(-5).reverse(); 
+                
+                const tbody = document.getElementById('tabelData');
+                tbody.innerHTML = '';
+
+                if (recentData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">Belum ada data.</td></tr>';
+                    return;
+                }
+
+                recentData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b hover:bg-gray-50";
+                    
+                    // Format tanggal
+                    let tgl = row.Tanggal;
+                    if (tgl.includes('T')) tgl = tgl.split('T')[0];
+
+                    tr.innerHTML = `
+                        <td class="p-2 text-sm">${tgl}</td>
+                        <td class="p-2 text-sm font-medium ${row.Tipe === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}">${row.Tipe}</td>
+                        <td class="p-2 text-sm">${row.Kategori}</td>
+                        <td class="p-2 text-sm">${row.Deskripsi}</td>
+                        <td class="p-2 text-sm text-right">Rp ${Number(row['Jumlah (Rp)']).toLocaleString('id-ID')}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error("Gagal memuat data:", error);
+            }
+        }
+
+        // Fungsi untuk mengirim data ke Spreadsheet
+        document.getElementById('formKeuangan').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = e.target.querySelector('button');
+            const pesan = document.getElementById('statusPesan');
+            btn.disabled = true;
+            btn.innerText = "Menyimpan...";
+            pesan.innerText = "";
+
+            const dataBaru = {
+                "Tanggal": document.getElementById('tanggal').value,
+                "Tipe": document.getElementById('tipe').value,
+                "Kategori": document.getElementById('kategori').value,
+                "Deskripsi": document.getElementById('deskripsi').value,
+                "Jumlah (Rp)": document.getElementById('jumlah').value,
+                "Metode": document.getElementById('metode').value,
+                "Catatan": document.getElementById('catatan').value
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        sheetName: "Keuangan",
+                        data: dataBaru
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    pesan.innerText = "✅ Data berhasil disimpan!";
+                    pesan.className = "mt-4 text-sm font-medium text-center text-green-600";
+                    e.target.reset();
+                    loadData(); // Refresh tabel
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                pesan.innerText = "❌ Gagal menyimpan: " + error.message;
+                pesan.className = "mt-4 text-sm font-medium text-center text-red-600";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Simpan ke Spreadsheet";
+            }
+        });
+
+        // Panggil loadData saat halaman pertama kali dibuka
+        window.onload = loadData;
+    </script>
+</body>
+</html>
