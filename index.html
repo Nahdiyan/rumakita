@@ -5,174 +5,268 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RumaKita - Manajemen Rumah Tangga</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: bold; }
+        .hidden-section { display: none !important; }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
 
-    <div class="max-w-4xl mx-auto p-6 mt-10">
-        <!-- Header -->
-        <header class="mb-8 text-center">
+    <div class="max-w-6xl mx-auto p-4 md:p-6 mt-5">
+        <header class="mb-6 text-center">
             <h1 class="text-3xl font-bold text-blue-600">🏠 RumaKita</h1>
             <p class="text-gray-500">Sistem Pemantau Rumah Tangga Terpadu</p>
         </header>
 
-        <!-- Form Input -->
-        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-            <h2 class="text-xl font-semibold mb-4">Tambah Data Keuangan</h2>
-            <form id="formKeuangan" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Tanggal</label>
-                    <input type="date" id="tanggal" required class="w-full border p-2 rounded focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Tipe</label>
-                    <select id="tipe" required class="w-full border p-2 rounded focus:ring-blue-500">
+        <div class="flex overflow-x-auto border-b border-gray-300 mb-6 bg-white rounded-t-lg px-2">
+            <button onclick="switchTab('Keuangan')" id="tab-Keuangan" class="tab-active py-3 px-4 text-sm md:text-base whitespace-nowrap">Keuangan</button>
+            <button onclick="switchTab('Tugas')" id="tab-Tugas" class="py-3 px-4 text-sm md:text-base whitespace-nowrap hover:text-blue-500">Tugas</button>
+            <button onclick="switchTab('Stok')" id="tab-Stok" class="py-3 px-4 text-sm md:text-base whitespace-nowrap hover:text-blue-500">Stok</button>
+            <button onclick="switchTab('Aset')" id="tab-Aset" class="py-3 px-4 text-sm md:text-base whitespace-nowrap hover:text-blue-500">Aset</button>
+            <button onclick="switchTab('Kesehatan')" id="tab-Kesehatan" class="py-3 px-4 text-sm md:text-base whitespace-nowrap hover:text-blue-500">Kesehatan</button>
+            <button onclick="switchTab('Tujuan')" id="tab-Tujuan" class="py-3 px-4 text-sm md:text-base whitespace-nowrap hover:text-blue-500">Tujuan</button>
+        </div>
+
+        <!-- KEUANGAN -->
+        <section id="sec-Keuangan" class="content-section">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Catat Keuangan</h2>
+                <form id="form-Keuangan" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Keuangan')">
+                    <input type="date" name="Tanggal" required class="border p-2 rounded">
+                    <select name="Tipe" required class="border p-2 rounded">
                         <option value="Pemasukan">Pemasukan</option>
                         <option value="Pengeluaran">Pengeluaran</option>
                     </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Kategori</label>
-                    <input type="text" id="kategori" placeholder="Cth: Dapur, Tagihan" required class="w-full border p-2 rounded focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Deskripsi</label>
-                    <input type="text" id="deskripsi" placeholder="Cth: Beli beras" required class="w-full border p-2 rounded focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Jumlah (Rp)</label>
-                    <input type="number" id="jumlah" required class="w-full border p-2 rounded focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Metode</label>
-                    <input type="text" id="metode" placeholder="Cth: Cash, Transfer" class="w-full border p-2 rounded focus:ring-blue-500">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium mb-1">Catatan</label>
-                    <input type="text" id="catatan" class="w-full border p-2 rounded focus:ring-blue-500">
-                </div>
-                <div class="md:col-span-2 text-right">
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">Simpan ke Spreadsheet</button>
-                </div>
-            </form>
-            <p id="statusPesan" class="mt-4 text-sm font-medium text-center"></p>
-        </div>
-
-        <!-- Tabel Data -->
-        <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold">Data Keuangan Terbaru</h2>
-                <button onclick="loadData()" class="text-sm text-blue-600 hover:underline">🔄 Refresh</button>
+                    <input type="text" name="Kategori" placeholder="Kategori" required class="border p-2 rounded">
+                    <input type="text" name="Deskripsi" placeholder="Deskripsi" required class="border p-2 rounded">
+                    <input type="number" name="Jumlah (Rp)" placeholder="Jumlah (Rp)" required class="border p-2 rounded">
+                    <input type="text" name="Metode" placeholder="Metode" class="border p-2 rounded">
+                    <input type="text" name="Catatan" placeholder="Catatan tambahan" class="border p-2 rounded md:col-span-2">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 col-span-1 md:col-span-3">Simpan Keuangan</button>
+                </form>
             </div>
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50 border-b">
-                        <th class="p-2 text-sm">Tanggal</th>
-                        <th class="p-2 text-sm">Tipe</th>
-                        <th class="p-2 text-sm">Kategori</th>
-                        <th class="p-2 text-sm">Deskripsi</th>
-                        <th class="p-2 text-sm text-right">Jumlah</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelData">
-                    <tr><td colspan="5" class="text-center p-4 text-gray-500">Memuat data...</td></tr>
-                </tbody>
-            </table>
-        </div>
+            <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Data Keuangan</h2>
+                <table class="w-full text-left border-collapse"><thead id="thead-Keuangan"></thead><tbody id="tbody-Keuangan"></tbody></table>
+            </div>
+        </section>
+
+        <!-- TUGAS -->
+        <section id="sec-Tugas" class="content-section hidden-section">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Tambah Tugas</h2>
+                <form id="form-Tugas" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Tugas')">
+                    <input type="text" name="ID Tugas" placeholder="ID" required class="border p-2 rounded">
+                    <input type="text" name="Nama Tugas" placeholder="Nama Tugas" required class="border p-2 rounded md:col-span-2">
+                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded">
+                    <input type="text" name="Penanggung Jawab" placeholder="PJ" class="border p-2 rounded">
+                    <input type="date" name="Deadline" required class="border p-2 rounded">
+                    <select name="Prioritas" class="border p-2 rounded"><option value="Tinggi">Tinggi</option><option value="Sedang" selected>Sedang</option><option value="Rendah">Rendah</option></select>
+                    <select name="Status" class="border p-2 rounded"><option value="Belum">Belum</option><option value="Proses">Proses</option><option value="Selesai">Selesai</option></select>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Simpan Tugas</button>
+                </form>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Daftar Tugas</h2>
+                <table class="w-full text-left border-collapse"><thead id="thead-Tugas"></thead><tbody id="tbody-Tugas"></tbody></table>
+            </div>
+        </section>
+
+        <!-- STOK -->
+        <section id="sec-Stok" class="content-section hidden-section">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Tambah Stok</h2>
+                <form id="form-Stok" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Stok')">
+                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded">
+                    <input type="text" name="Nama Barang" placeholder="Nama Barang" required class="border p-2 rounded md:col-span-2">
+                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded">
+                    <input type="text" name="Satuan" placeholder="Satuan (Cth: kg)" required class="border p-2 rounded">
+                    <input type="number" name="Stok Saat Ini" placeholder="Stok Saat Ini" required class="border p-2 rounded">
+                    <input type="number" name="Stok Minimum" placeholder="Stok Minimum" required class="border p-2 rounded">
+                    <input type="number" name="Estimasi Harga" placeholder="Estimasi Harga" class="border p-2 rounded">
+                    <select name="Prioritas" class="border p-2 rounded"><option value="Tinggi">Tinggi</option><option value="Sedang" selected>Sedang</option><option value="Rendah">Rendah</option></select>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Simpan Stok</button>
+                </form>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Daftar Stok</h2>
+                <table class="w-full text-left border-collapse"><thead id="thead-Stok"></thead><tbody id="tbody-Stok"></tbody></table>
+            </div>
+        </section>
+
+        <!-- ASET -->
+        <section id="sec-Aset" class="content-section hidden-section">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Tambah Aset</h2>
+                <form id="form-Aset" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Aset')">
+                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded">
+                    <input type="text" name="Nama Aset" placeholder="Nama Aset" required class="border p-2 rounded">
+                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded">
+                    <select name="Kondisi" class="border p-2 rounded"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option></select>
+                    <input type="date" name="Jadwal Servis/Cek" class="border p-2 rounded">
+                    <input type="number" name="Biaya Terakhir" placeholder="Biaya Terakhir" class="border p-2 rounded">
+                    <input type="text" name="Catatan" placeholder="Catatan" class="border p-2 rounded md:col-span-3">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 md:col-span-3">Simpan Aset</button>
+                </form>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Daftar Aset</h2>
+                <table class="w-full text-left border-collapse"><thead id="thead-Aset"></thead><tbody id="tbody-Aset"></tbody></table>
+            </div>
+        </section>
+
+        <!-- KESEHATAN -->
+        <section id="sec-Kesehatan" class="content-section hidden-section">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Catatan Kesehatan</h2>
+                <form id="form-Kesehatan" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Kesehatan')">
+                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded">
+                    <input type="text" name="Nama Anggota" placeholder="Nama Anggota" required class="border p-2 rounded">
+                    <input type="text" name="Jenis Catatan" placeholder="Jenis" class="border p-2 rounded">
+                    <input type="text" name="Deskripsi" placeholder="Deskripsi" required class="border p-2 rounded">
+                    <input type="date" name="Tanggal" required class="border p-2 rounded">
+                    <select name="Status" class="border p-2 rounded"><option value="Terjadwal">Terjadwal</option><option value="Selesai">Selesai</option><option value="Habis">Habis</option></select>
+                    <input type="text" name="Catatan" placeholder="Catatan" class="border p-2 rounded md:col-span-3">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 md:col-span-3">Simpan Catatan</button>
+                </form>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Data Kesehatan</h2>
+                <table class="w-full text-left border-collapse"><thead id="thead-Kesehatan"></thead><tbody id="tbody-Kesehatan"></tbody></table>
+            </div>
+        </section>
+
+        <!-- TUJUAN -->
+        <section id="sec-Tujuan" class="content-section hidden-section">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Tambah Tujuan</h2>
+                <form id="form-Tujuan" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Tujuan')">
+                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded">
+                    <input type="text" name="Nama Tujuan" placeholder="Nama Tujuan" required class="border p-2 rounded md:col-span-2">
+                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded">
+                    <input type="number" name="Target Dana (Rp)" placeholder="Target Dana" required class="border p-2 rounded">
+                    <input type="number" name="Dana Terkumpul (Rp)" placeholder="Dana Terkumpul" required class="border p-2 rounded">
+                    <input type="date" name="Target Waktu" class="border p-2 rounded">
+                    <select name="Status" class="border p-2 rounded"><option value="Berjalan">Berjalan</option><option value="Tercapai">Tercapai</option><option value="Dibatalkan">Dibatalkan</option></select>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 md:col-span-3">Simpan Tujuan</button>
+                </form>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Daftar Tujuan</h2>
+                <table class="w-full text-left border-collapse"><thead id="thead-Tujuan"></thead><tbody id="tbody-Tujuan"></tbody></table>
+            </div>
+        </section>
+
+        <div id="notif" class="fixed bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded shadow-lg hidden-section">Berhasil disimpan!</div>
     </div>
 
     <script>
-        // MASUKKAN URL APLIKASI WEB ANDA DARI LANGKAH 1 DI SINI
-        const API_URL = https://script.google.com/macros/s/AKfycbxMdNJqqHHSZi20qVlP0z4MHQzk7r47EZNWlnvWiMcc4h7BcKedEUPgskUppFotYzie/exec;
+        // GANTI DENGAN URL YANG BERAKHIRAN /exec DARI MENU DEPLOY APPS SCRIPT
+        const API_URL = "https://script.google.com/macros/s/AKfycbxMdNJqqHHSZi20qVlP0z4MHQzk7r47EZNWlnvWiMcc4h7BcKedEUPgskUppFotYzie/exec";
 
-        // Fungsi untuk mengambil data dari Spreadsheet
-        async function loadData() {
+        function switchTab(tabName) {
+            document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden-section'));
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('tab-active');
+                el.classList.add('text-gray-500');
+            });
+            document.getElementById('sec-' + tabName).classList.remove('hidden-section');
+            document.getElementById('tab-' + tabName).classList.add('tab-active');
+            document.getElementById('tab-' + tabName).classList.remove('text-gray-500');
+            loadData(tabName);
+        }
+
+        async function loadData(sheetName) {
+            const thead = document.getElementById('thead-' + sheetName);
+            const tbody = document.getElementById('tbody-' + sheetName);
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center p-4">Memuat data...</td></tr>';
+
             try {
-                const response = await fetch(`${API_URL}?sheet=Keuangan`);
+                const response = await fetch(`${API_URL}?sheet=${sheetName}`);
                 const data = await response.json();
                 
-                // Urutkan dari yang terbaru (asumsi data bertambah ke bawah)
-                const recentData = data.slice(-5).reverse(); 
-                
-                const tbody = document.getElementById('tabelData');
-                tbody.innerHTML = '';
-
-                if (recentData.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">Belum ada data.</td></tr>';
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="10" class="text-center p-4 text-gray-500">Belum ada data.</td></tr>';
                     return;
                 }
 
-                recentData.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.className = "border-b hover:bg-gray-50";
-                    
-                    // Format tanggal
-                    let tgl = row.Tanggal;
-                    if (tgl.includes('T')) tgl = tgl.split('T')[0];
+                const headers = Object.keys(data[0]);
+                thead.innerHTML = '<tr class="bg-gray-100 border-b">' + 
+                    headers.map(h => `<th class="p-2 text-sm font-semibold">${h}</th>`).join('') + 
+                    '</tr>';
 
-                    tr.innerHTML = `
-                        <td class="p-2 text-sm">${tgl}</td>
-                        <td class="p-2 text-sm font-medium ${row.Tipe === 'Pemasukan' ? 'text-green-600' : 'text-red-600'}">${row.Tipe}</td>
-                        <td class="p-2 text-sm">${row.Kategori}</td>
-                        <td class="p-2 text-sm">${row.Deskripsi}</td>
-                        <td class="p-2 text-sm text-right">Rp ${Number(row['Jumlah (Rp)']).toLocaleString('id-ID')}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                tbody.innerHTML = data.reverse().map(row => {
+                    return '<tr class="border-b hover:bg-gray-50">' + 
+                        headers.map(h => {
+                            let val = row[h] || "";
+                            if (typeof val === 'string' && val.includes('T') && val.length > 10) {
+                                val = val.split('T')[0];
+                            }
+                            if (h.includes('Rp') && val) {
+                                val = 'Rp ' + Number(val).toLocaleString('id-ID');
+                            }
+                            return `<td class="p-2 text-sm">${val}</td>`;
+                        }).join('') + 
+                    '</tr>';
+                }).join('');
+
             } catch (error) {
-                console.error("Gagal memuat data:", error);
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500">Gagal memuat data. Periksa URL API Anda.</td></tr>`;
             }
         }
 
-        // Fungsi untuk mengirim data ke Spreadsheet
-        document.getElementById('formKeuangan').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        async function submitData(event, sheetName) {
+            event.preventDefault();
+            const form = event.target;
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
             
-            const btn = e.target.querySelector('button');
-            const pesan = document.getElementById('statusPesan');
-            btn.disabled = true;
             btn.innerText = "Menyimpan...";
-            pesan.innerText = "";
+            btn.disabled = true;
 
-            const dataBaru = {
-                "Tanggal": document.getElementById('tanggal').value,
-                "Tipe": document.getElementById('tipe').value,
-                "Kategori": document.getElementById('kategori').value,
-                "Deskripsi": document.getElementById('deskripsi').value,
-                "Jumlah (Rp)": document.getElementById('jumlah').value,
-                "Metode": document.getElementById('metode').value,
-                "Catatan": document.getElementById('catatan').value
-            };
+            const formData = new FormData(form);
+            const dataObj = {};
+            formData.forEach((value, key) => {
+                dataObj[key] = value;
+            });
 
             try {
+                // Gunakan mode 'no-cors' jika mengalami kendala CORS, 
+                // tapi secara default Google Apps Script bisa menerima POST
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({
-                        sheetName: "Keuangan",
-                        data: dataBaru
+                        sheetName: sheetName,
+                        data: dataObj
                     })
                 });
                 
                 const result = await response.json();
                 
                 if (result.status === "success") {
-                    pesan.innerText = "✅ Data berhasil disimpan!";
-                    pesan.className = "mt-4 text-sm font-medium text-center text-green-600";
-                    e.target.reset();
-                    loadData(); // Refresh tabel
+                    form.reset();
+                    showNotif("✅ Data berhasil disimpan ke " + sheetName);
+                    loadData(sheetName); 
                 } else {
-                    throw new Error(result.message);
+                    alert("Gagal dari server: " + result.message);
                 }
             } catch (error) {
-                pesan.innerText = "❌ Gagal menyimpan: " + error.message;
-                pesan.className = "mt-4 text-sm font-medium text-center text-red-600";
+                alert("Error koneksi: Pastikan URL API benar dan Deployment diset ke 'Anyone'.");
+                console.error(error);
             } finally {
+                btn.innerText = originalText;
                 btn.disabled = false;
-                btn.innerText = "Simpan ke Spreadsheet";
             }
-        });
+        }
 
-        // Panggil loadData saat halaman pertama kali dibuka
-        window.onload = loadData;
+        function showNotif(msg) {
+            const notif = document.getElementById('notif');
+            notif.innerText = msg;
+            notif.classList.remove('hidden-section');
+            setTimeout(() => notif.classList.add('hidden-section'), 3000);
+        }
+
+        window.onload = () => { switchTab('Keuangan'); };
     </script>
 </body>
 </html>
