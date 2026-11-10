@@ -4,278 +4,404 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RumaKita - Manajemen Rumah Tangga</title>
+    
+    <!-- Font Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { gray: { 900: '#0f172a', 800: '#1e293b', 700: '#334155' } } } } }
+        tailwind.config = { 
+            darkMode: 'class', 
+            theme: { 
+                extend: { 
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: { 
+                        darkBg: '#0f172a', 
+                        darkCard: '#1e293b',
+                        darkBorder: '#334155'
+                    } 
+                } 
+            } 
+        }
     </script>
+    
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .hidden-section { display: none !important; }
-        /* Animasi Background Ikon */
+        
+        /* Animasi Ikon Melayang di Banner */
         @keyframes float {
             0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(10deg); }
+            50% { transform: translateY(-15px) rotate(8deg); }
             100% { transform: translateY(0px) rotate(0deg); }
         }
-        .bg-icon-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            overflow: hidden; pointer-events: none; z-index: 0; opacity: 0.05;
+        .floating-icon {
+            position: absolute; 
+            opacity: 0.15; 
+            animation: float 5s ease-in-out infinite;
+            pointer-events: none;
         }
-        .bg-icon-container i {
-            position: absolute; font-size: 8rem;
-            animation: float 6s ease-in-out infinite;
+
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .content-relative { position: relative; z-index: 10; }
-        .chart-container { position: relative; height: 300px; width: 100%; }
-        * { transition: background-color 0.3s, border-color 0.3s; }
+        .dark .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chart-container { position: relative; height: 280px; width: 100%; }
+        * { transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        
+        /* Kustomisasi Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 font-sans">
+<body class="bg-slate-50 text-slate-800 dark:bg-darkBg dark:text-slate-200 min-h-screen pb-10">
 
-    <div class="max-w-6xl mx-auto p-4 md:p-6 mt-2">
-        <header class="mb-6 flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800 dark:text-white"><i class="fa-solid fa-house-chimney text-blue-600 mr-2"></i>RumaKita</h1>
-                <p class="text-gray-500 dark:text-gray-400 text-sm">Sistem Pemantau Rumah Tangga Terpadu</p>
+    <div class="max-w-7xl mx-auto px-4 md:px-6 pt-6">
+        <!-- Header -->
+        <header class="mb-8 flex justify-between items-center relative z-50">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg flex items-center justify-center text-white text-2xl">
+                    <i class="fa-solid fa-house-chimney"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-white">RumaKita</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Sistem Pemantau Rumah Tangga</p>
+                </div>
             </div>
-            <button onclick="toggleDarkMode()" class="p-3 bg-white dark:bg-gray-800 rounded-full shadow-md text-gray-600 dark:text-yellow-400 hover:bg-gray-50 transition relative z-50">
-                <i id="themeIcon" class="fa-solid fa-moon text-xl"></i>
+            <button onclick="toggleDarkMode()" class="w-10 h-10 bg-white dark:bg-darkCard rounded-full shadow-md flex items-center justify-center text-slate-600 dark:text-amber-400 hover:scale-105 transition">
+                <i id="themeIcon" class="fa-solid fa-moon"></i>
             </button>
         </header>
 
-        <!-- Navigasi Tab -->
-        <div class="flex overflow-x-auto border-b border-gray-300 dark:border-gray-700 mb-6 bg-white dark:bg-gray-800 rounded-t-lg px-2 shadow-sm relative z-20">
-            <button onclick="switchTab('Dashboard')" id="tab-Dashboard" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium text-gray-500 transition-colors"><i class="fa-solid fa-chart-pie mr-1"></i> Beranda</button>
-            <button onclick="switchTab('Keuangan')" id="tab-Keuangan" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium text-gray-500 transition-colors">Keuangan</button>
-            <button onclick="switchTab('Tugas')" id="tab-Tugas" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium text-gray-500 transition-colors">Tugas</button>
-            <button onclick="switchTab('Stok')" id="tab-Stok" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium text-gray-500 transition-colors">Stok</button>
-            <button onclick="switchTab('Aset')" id="tab-Aset" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium text-gray-500 transition-colors">Aset</button>
-            <button onclick="switchTab('Kesehatan')" id="tab-Kesehatan" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium text-gray-500 transition-colors">Kesehatan</button>
-            <button onclick="switchTab('Tujuan')" id="tab-Tujuan" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium text-gray-500 transition-colors">Tujuan</button>
+        <!-- Navigasi Tab (Glassmorphism) -->
+        <div class="sticky top-4 z-40 glass-panel rounded-2xl p-2 mb-8 flex overflow-x-auto shadow-sm hide-scrollbar gap-1">
+            <button onclick="switchTab('Dashboard')" id="tab-Dashboard" class="tab-btn flex-shrink-0 py-2.5 px-5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"><i class="fa-solid fa-chart-pie mr-2"></i>Beranda</button>
+            <button onclick="switchTab('Keuangan')" id="tab-Keuangan" class="tab-btn flex-shrink-0 py-2.5 px-5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Keuangan</button>
+            <button onclick="switchTab('Tugas')" id="tab-Tugas" class="tab-btn flex-shrink-0 py-2.5 px-5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Tugas</button>
+            <button onclick="switchTab('Stok')" id="tab-Stok" class="tab-btn flex-shrink-0 py-2.5 px-5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Stok</button>
+            <button onclick="switchTab('Aset')" id="tab-Aset" class="tab-btn flex-shrink-0 py-2.5 px-5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Aset</button>
+            <button onclick="switchTab('Kesehatan')" id="tab-Kesehatan" class="tab-btn flex-shrink-0 py-2.5 px-5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Kesehatan</button>
+            <button onclick="switchTab('Tujuan')" id="tab-Tujuan" class="tab-btn flex-shrink-0 py-2.5 px-5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Tujuan</button>
         </div>
 
-        <!-- DASHBOARD -->
-        <section id="sec-Dashboard" class="content-section">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-200">Ringkasan</h2>
-                <div class="flex gap-2">
-                    <select id="filterBulan" onchange="loadDashboard()" class="border p-2 text-sm rounded dark:bg-gray-700 dark:text-white">
+        <!-- ================= DASHBOARD ================= -->
+        <section id="sec-Dashboard" class="content-section animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-white">Ringkasan Keuangan</h2>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <select id="filterBulan" onchange="loadDashboard()" class="w-full md:w-auto bg-white dark:bg-darkCard border border-slate-200 dark:border-darkBorder text-sm rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer">
                         <option value="all">Semua Bulan</option>
                         <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option><option value="04">April</option>
                         <option value="05">Mei</option><option value="06">Juni</option><option value="07">Juli</option><option value="08">Agustus</option>
                         <option value="09">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
                     </select>
-                    <select id="filterTahun" onchange="loadDashboard()" class="border p-2 text-sm rounded dark:bg-gray-700 dark:text-white"></select>
+                    <select id="filterTahun" onchange="loadDashboard()" class="w-full md:w-auto bg-white dark:bg-darkCard border border-slate-200 dark:border-darkBorder text-sm rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"></select>
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <!-- Kartu Keuangan (Bisa diklik) -->
-                <div onclick="switchTab('Keuangan')" class="cursor-pointer bg-gradient-to-br from-green-400 to-green-600 rounded-xl p-5 text-white shadow-lg relative overflow-hidden transform hover:scale-105 transition">
-                    <i class="fa-solid fa-wallet absolute right-[-10px] bottom-[-10px] text-6xl opacity-20"></i>
-                    <p class="text-sm font-medium opacity-90">Sisa Saldo</p>
-                    <h3 id="dash-saldo" class="text-2xl font-bold mt-2">Memuat...</h3>
+            <!-- Kartu Ringkasan -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                <div onclick="switchTab('Keuangan')" class="cursor-pointer relative overflow-hidden bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/20 hover:-translate-y-1 transition duration-300">
+                    <i class="fa-solid fa-wallet absolute right-[-15px] bottom-[-15px] text-8xl opacity-20 transform -rotate-12"></i>
+                    <p class="text-sm font-medium opacity-90 mb-1">Sisa Saldo</p>
+                    <h3 id="dash-saldo" class="text-3xl font-extrabold tracking-tight">Memuat...</h3>
                 </div>
-                <!-- Kartu Tugas (Bisa diklik) -->
-                <div onclick="switchTab('Tugas')" class="cursor-pointer bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl p-5 text-white shadow-lg relative overflow-hidden transform hover:scale-105 transition">
-                    <i class="fa-solid fa-clipboard-list absolute right-[-10px] bottom-[-10px] text-6xl opacity-20"></i>
-                    <p class="text-sm font-medium opacity-90">Tugas Belum Selesai</p>
-                    <h3 id="dash-tugas" class="text-2xl font-bold mt-2">Memuat...</h3>
+                <div onclick="switchTab('Tugas')" class="cursor-pointer relative overflow-hidden bg-gradient-to-br from-orange-400 to-rose-400 rounded-3xl p-6 text-white shadow-xl shadow-orange-500/20 hover:-translate-y-1 transition duration-300">
+                    <i class="fa-solid fa-clipboard-list absolute right-[-15px] bottom-[-15px] text-8xl opacity-20 transform -rotate-12"></i>
+                    <p class="text-sm font-medium opacity-90 mb-1">Tugas Aktif</p>
+                    <h3 id="dash-tugas" class="text-3xl font-extrabold tracking-tight">Memuat...</h3>
                 </div>
-                <!-- Kartu Stok (Bisa diklik) -->
-                <div onclick="switchTab('Stok')" class="cursor-pointer bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl p-5 text-white shadow-lg relative overflow-hidden transform hover:scale-105 transition">
-                    <i class="fa-solid fa-cart-shopping absolute right-[-10px] bottom-[-10px] text-6xl opacity-20"></i>
-                    <p class="text-sm font-medium opacity-90">Stok Menipis / Habis</p>
-                    <h3 id="dash-stok" class="text-2xl font-bold mt-2">Memuat...</h3>
+                <div onclick="switchTab('Stok')" class="cursor-pointer relative overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl p-6 text-white shadow-xl shadow-amber-500/20 hover:-translate-y-1 transition duration-300">
+                    <i class="fa-solid fa-cart-shopping absolute right-[-15px] bottom-[-15px] text-8xl opacity-20 transform -rotate-12"></i>
+                    <p class="text-sm font-medium opacity-90 mb-1">Stok Menipis</p>
+                    <h3 id="dash-stok" class="text-3xl font-extrabold tracking-tight">Memuat...</h3>
                 </div>
-                <!-- Kartu Tujuan (Bisa diklik) -->
-                <div onclick="switchTab('Tujuan')" class="cursor-pointer bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-5 text-white shadow-lg relative overflow-hidden transform hover:scale-105 transition">
-                    <i class="fa-solid fa-bullseye absolute right-[-10px] bottom-[-10px] text-6xl opacity-20"></i>
-                    <p class="text-sm font-medium opacity-90">Total Dana Tujuan</p>
-                    <h3 id="dash-tujuan" class="text-2xl font-bold mt-2">Memuat...</h3>
+                <div onclick="switchTab('Tujuan')" class="cursor-pointer relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-500/20 hover:-translate-y-1 transition duration-300">
+                    <i class="fa-solid fa-bullseye absolute right-[-15px] bottom-[-15px] text-8xl opacity-20 transform -rotate-12"></i>
+                    <p class="text-sm font-medium opacity-90 mb-1">Dana Tujuan</p>
+                    <h3 id="dash-tujuan" class="text-3xl font-extrabold tracking-tight">Memuat...</h3>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div onclick="switchTab('Keuangan')" class="cursor-pointer bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border-t-4 border-green-400 hover:shadow-lg transition">
-                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4"><i class="fa-solid fa-chart-pie text-green-500 mr-2"></i>Pengeluaran per Kategori</h3>
-                    <div id="emptyPieMsg" class="text-center text-gray-400 py-10 hidden-section">Belum ada data.</div>
+            <!-- Grafik -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div onclick="switchTab('Keuangan')" class="cursor-pointer bg-white dark:bg-darkCard p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder hover:shadow-md transition">
+                    <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-6 flex items-center"><i class="fa-solid fa-chart-pie text-emerald-500 mr-3"></i>Pengeluaran per Kategori</h3>
+                    <div id="emptyPieMsg" class="text-center text-slate-400 py-10 hidden-section">Belum ada data.</div>
                     <div class="chart-container" id="pieContainer"><canvas id="chartPengeluaran"></canvas></div>
                 </div>
-                <div onclick="switchTab('Tugas')" class="cursor-pointer bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border-t-4 border-orange-400 hover:shadow-lg transition">
-                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4"><i class="fa-solid fa-chart-bar text-orange-500 mr-2"></i>Status Tugas</h3>
-                    <div id="emptyBarMsg" class="text-center text-gray-400 py-10 hidden-section">Belum ada data.</div>
+                <div onclick="switchTab('Tugas')" class="cursor-pointer bg-white dark:bg-darkCard p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder hover:shadow-md transition">
+                    <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-6 flex items-center"><i class="fa-solid fa-chart-bar text-orange-500 mr-3"></i>Status Tugas</h3>
+                    <div id="emptyBarMsg" class="text-center text-slate-400 py-10 hidden-section">Belum ada data.</div>
                     <div class="chart-container" id="barContainer"><canvas id="chartTugas"></canvas></div>
                 </div>
             </div>
-            <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md border-t-4 border-blue-400">
-                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4"><i class="fa-solid fa-chart-line text-blue-500 mr-2"></i>Tren Pemasukan vs Pengeluaran</h3>
-                <div class="chart-container" id="lineContainer"><canvas id="chartTren"></canvas></div>
+            <div class="bg-white dark:bg-darkCard p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder">
+                <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-6 flex items-center"><i class="fa-solid fa-chart-line text-blue-500 mr-3"></i>Tren Bulanan (Pemasukan vs Pengeluaran)</h3>
+                <div class="chart-container"><canvas id="chartTren"></canvas></div>
             </div>
         </section>
 
-        <!-- KEUANGAN -->
-        <section id="sec-Keuangan" class="content-section hidden-section relative bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-            <div class="bg-icon-container text-green-500"><i class="fa-solid fa-money-bill-wave top-10 left-10" style="animation-delay: 0s;"></i><i class="fa-solid fa-coins bottom-10 right-20" style="animation-delay: 2s;"></i></div>
-            <div class="content-relative p-6">
-                <h2 class="text-xl font-bold mb-4 text-green-700 dark:text-green-400 border-b pb-2">Catat Keuangan</h2>
-                <form id="form-Keuangan" class="grid grid-cols-1 md:grid-cols-2 gap-4" onsubmit="submitData(event, 'Keuangan', 'Tanggal')">
-                    <div><label class="block text-sm mb-1">Tanggal</label><input type="date" name="Tanggal" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Tipe</label><select name="Tipe" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Pemasukan">Pemasukan</option><option value="Pengeluaran">Pengeluaran</option></select></div>
-                    <div><label class="block text-sm mb-1">Kategori</label><select name="Kategori" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Gaji">Gaji</option><option value="Sampingan">Sampingan</option><option value="Makanan dan Minuman">Makanan dan Minuman</option><option value="Dapur">Dapur</option><option value="Kendaraan">Kendaraan</option><option value="Kesehatan">Kesehatan</option><option value="Kebersihan Rumah">Kebersihan Rumah</option><option value="Kebersihan Diri">Kebersihan Diri</option><option value="Perabotan">Perabotan</option><option value="Tabungan">Tabungan</option><option value="Top Up">Top Up</option></select></div>
-                    <div><label class="block text-sm mb-1">Sumber Dana</label><select name="Sumber Dana" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Shopeepay">Shopeepay</option><option value="Gopay">Gopay</option><option value="Bank Mandiri">Bank Mandiri</option><option value="Bank BTN">Bank BTN</option><option value="Bank BNI">Bank BNI</option><option value="Bank BRI">Bank BRI</option></select></div>
-                    <div><label class="block text-sm mb-1">Jumlah (Rp)</label><input type="number" name="Jumlah (Rp)" placeholder="Cth: 50000" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Metode</label><select name="Metode" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Tunai">Tunai</option><option value="Transfer">Transfer</option><option value="QRIS">QRIS</option></select></div>
-                    <div class="md:col-span-2"><label class="block text-sm mb-1">Catatan</label><input type="text" name="Catatan" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 md:col-span-2">Simpan Keuangan</button>
-                </form>
-                <div class="flex justify-between items-center mt-8 mb-2 border-b pb-2">
-                    <h3 class="font-bold">Data Keuangan</h3>
-                    <button onclick="loadData('Keuangan')" class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
+        <!-- ================= KEUANGAN ================= -->
+        <section id="sec-Keuangan" class="content-section hidden-section animate-fade-in">
+            <!-- Banner -->
+            <div class="relative bg-gradient-to-r from-emerald-500 to-teal-400 rounded-3xl p-8 mb-6 overflow-hidden shadow-lg shadow-emerald-500/20 text-white">
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-extrabold mb-2">Manajemen Keuangan</h2>
+                    <p class="opacity-90">Catat pemasukan dan pengeluaran Anda dengan rapi.</p>
                 </div>
-                <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead id="thead-Keuangan" class="bg-gray-100 dark:bg-gray-700"></thead><tbody id="tbody-Keuangan"></tbody></table></div>
+                <i class="fa-solid fa-money-bill-wave floating-icon text-8xl top-4 right-10" style="animation-delay: 0s;"></i>
+                <i class="fa-solid fa-coins floating-icon text-6xl bottom-[-10px] right-32" style="animation-delay: 1.5s;"></i>
+                <i class="fa-solid fa-calculator floating-icon text-7xl top-10 right-48" style="animation-delay: 3s;"></i>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder mb-6">
+                <h3 class="text-lg font-bold mb-6 text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-darkBorder pb-3">Tambah Data Keuangan</h3>
+                <form id="form-Keuangan" class="grid grid-cols-1 md:grid-cols-3 gap-5" onsubmit="submitData(event, 'Keuangan', 'Tanggal')">
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Tanggal</label><input type="date" name="Tanggal" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Tipe</label><select name="Tipe" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"><option value="Pemasukan">Pemasukan</option><option value="Pengeluaran">Pengeluaran</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Kategori</label><select name="Kategori" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"><option value="Gaji">Gaji</option><option value="Sampingan">Sampingan</option><option value="Makanan dan Minuman">Makanan & Minuman</option><option value="Dapur">Dapur</option><option value="Kendaraan">Kendaraan</option><option value="Kesehatan">Kesehatan</option><option value="Kebersihan Rumah">Kebersihan Rumah</option><option value="Kebersihan Diri">Kebersihan Diri</option><option value="Perabotan">Perabotan</option><option value="Tabungan">Tabungan</option><option value="Top Up">Top Up</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Sumber Dana</label><select name="Sumber Dana" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"><option value="Shopeepay">Shopeepay</option><option value="Gopay">Gopay</option><option value="Bank Mandiri">Bank Mandiri</option><option value="Bank BTN">Bank BTN</option><option value="Bank BNI">Bank BNI</option><option value="Bank BRI">Bank BRI</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Jumlah (Rp)</label><input type="number" name="Jumlah (Rp)" placeholder="Cth: 50000" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Metode</label><select name="Metode" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"><option value="Tunai">Tunai</option><option value="Transfer">Transfer</option><option value="QRIS">QRIS</option></select></div>
+                    <div class="md:col-span-3"><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Catatan (Opsional)</label><input type="text" name="Catatan" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"></div>
+                    <button type="submit" class="bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-emerald-600 shadow-md shadow-emerald-500/30 md:col-span-3 transition">Simpan Keuangan</button>
+                </form>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200">Riwayat Keuangan</h3>
+                    <button onclick="loadData('Keuangan')" class="text-sm bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 px-4 py-2 rounded-lg font-semibold hover:bg-emerald-100 transition"><i class="fa-solid fa-rotate-right mr-2"></i>Refresh</button>
+                </div>
+                <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-darkBorder">
+                    <table class="w-full text-left border-collapse"><thead id="thead-Keuangan" class="bg-slate-50 dark:bg-slate-800/50"></thead><tbody id="tbody-Keuangan" class="divide-y divide-slate-100 dark:divide-darkBorder"></tbody></table>
+                </div>
             </div>
         </section>
 
-        <!-- TUGAS -->
-        <section id="sec-Tugas" class="content-section hidden-section relative bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-            <div class="bg-icon-container text-orange-500"><i class="fa-solid fa-broom top-10 right-10" style="animation-delay: 1s;"></i><i class="fa-solid fa-shirt bottom-10 left-20" style="animation-delay: 3s;"></i></div>
-            <div class="content-relative p-6">
-                <h2 class="text-xl font-bold mb-4 text-orange-600 dark:text-orange-400 border-b pb-2">Tambah Tugas</h2>
-                <form id="form-Tugas" class="grid grid-cols-1 md:grid-cols-2 gap-4" onsubmit="submitData(event, 'Tugas', 'ID Tugas')">
-                    <!-- ID Tugas disembunyikan dan diisi otomatis -->
+        <!-- ================= TUGAS ================= -->
+        <section id="sec-Tugas" class="content-section hidden-section animate-fade-in">
+            <div class="relative bg-gradient-to-r from-orange-400 to-rose-400 rounded-3xl p-8 mb-6 overflow-hidden shadow-lg shadow-orange-500/20 text-white">
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-extrabold mb-2">Daftar Tugas</h2>
+                    <p class="opacity-90">Kelola pekerjaan rumah tangga agar tidak ada yang terlewat.</p>
+                </div>
+                <i class="fa-solid fa-broom floating-icon text-8xl top-2 right-12" style="animation-delay: 0.5s;"></i>
+                <i class="fa-solid fa-shirt floating-icon text-6xl bottom-2 right-36" style="animation-delay: 2s;"></i>
+                <i class="fa-solid fa-jug-detergent floating-icon text-7xl top-10 right-64" style="animation-delay: 3.5s;"></i>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder mb-6">
+                <h3 class="text-lg font-bold mb-6 text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-darkBorder pb-3">Buat Tugas Baru</h3>
+                <form id="form-Tugas" class="grid grid-cols-1 md:grid-cols-3 gap-5" onsubmit="submitData(event, 'Tugas', 'ID Tugas')">
                     <input type="hidden" name="ID Tugas" id="input-id-tugas">
-                    <div><label class="block text-sm mb-1">Nama Tugas</label><input type="text" name="Nama Tugas" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Kategori</label><select name="Kategori" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Dapur">Dapur</option><option value="Pakaian">Pakaian</option><option value="Kebersihan Rumah">Kebersihan Rumah</option><option value="Kendaraan">Kendaraan</option><option value="Belanja">Belanja</option></select></div>
-                    <div><label class="block text-sm mb-1">Penanggung Jawab</label><select name="Penanggung Jawab" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Papah">Papah</option><option value="Bubu">Bubu</option></select></div>
-                    <div><label class="block text-sm mb-1">Deadline (Tgl & Jam)</label><input type="datetime-local" name="Deadline" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Prioritas</label><select name="Prioritas" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Tinggi">Tinggi</option><option value="Sedang" selected>Sedang</option><option value="Rendah">Rendah</option></select></div>
-                    <div><label class="block text-sm mb-1">Status</label><select name="Status" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Belum">Belum</option><option value="Proses">Proses</option><option value="Selesai">Selesai</option></select></div>
-                    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 md:col-span-2">Simpan Tugas</button>
+                    <div class="md:col-span-2"><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Nama Tugas</label><input type="text" name="Nama Tugas" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Kategori</label><select name="Kategori" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"><option value="Dapur">Dapur</option><option value="Pakaian">Pakaian</option><option value="Kebersihan Rumah">Kebersihan Rumah</option><option value="Kendaraan">Kendaraan</option><option value="Belanja">Belanja</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Penanggung Jawab</label><select name="Penanggung Jawab" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"><option value="Papah">Papah</option><option value="Bubu">Bubu</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Deadline (Tgl & Jam)</label><input type="datetime-local" name="Deadline" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Prioritas</label><select name="Prioritas" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"><option value="Tinggi">Tinggi</option><option value="Sedang" selected>Sedang</option><option value="Rendah">Rendah</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Status</label><select name="Status" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"><option value="Belum">Belum</option><option value="Proses">Proses</option><option value="Selesai">Selesai</option></select></div>
+                    <button type="submit" class="bg-orange-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-orange-600 shadow-md shadow-orange-500/30 md:col-span-3 transition">Simpan Tugas</button>
                 </form>
-                <div class="flex justify-between items-center mt-8 mb-2 border-b pb-2">
-                    <h3 class="font-bold">Daftar Tugas (Belum Selesai)</h3>
-                    <button onclick="loadData('Tugas')" class="text-sm bg-orange-100 text-orange-700 px-3 py-1 rounded hover:bg-orange-200"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200">Tugas Belum Selesai</h3>
+                    <button onclick="loadData('Tugas')" class="text-sm bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-4 py-2 rounded-lg font-semibold hover:bg-orange-100 transition"><i class="fa-solid fa-rotate-right mr-2"></i>Refresh</button>
                 </div>
-                <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead id="thead-Tugas" class="bg-gray-100 dark:bg-gray-700"></thead><tbody id="tbody-Tugas"></tbody></table></div>
+                <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-darkBorder">
+                    <table class="w-full text-left border-collapse"><thead id="thead-Tugas" class="bg-slate-50 dark:bg-slate-800/50"></thead><tbody id="tbody-Tugas" class="divide-y divide-slate-100 dark:divide-darkBorder"></tbody></table>
+                </div>
             </div>
         </section>
 
-        <!-- STOK -->
-        <section id="sec-Stok" class="content-section hidden-section relative bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-            <div class="bg-icon-container text-yellow-500"><i class="fa-solid fa-soap top-10 left-10" style="animation-delay: 0.5s;"></i><i class="fa-solid fa-wheat-awn bottom-10 right-10" style="animation-delay: 2.5s;"></i></div>
-            <div class="content-relative p-6">
-                <h2 class="text-xl font-bold mb-4 text-yellow-600 dark:text-yellow-400 border-b pb-2">Tambah Stok</h2>
-                <form id="form-Stok" class="grid grid-cols-1 md:grid-cols-2 gap-4" onsubmit="submitData(event, 'Stok', 'No')">
+        <!-- ================= STOK ================= -->
+        <section id="sec-Stok" class="content-section hidden-section animate-fade-in">
+            <div class="relative bg-gradient-to-r from-amber-400 to-orange-500 rounded-3xl p-8 mb-6 overflow-hidden shadow-lg shadow-amber-500/20 text-white">
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-extrabold mb-2">Manajemen Stok</h2>
+                    <p class="opacity-90">Pantau kebutuhan dapur dan kebersihan Anda.</p>
+                </div>
+                <i class="fa-solid fa-soap floating-icon text-8xl top-4 right-10" style="animation-delay: 0s;"></i>
+                <i class="fa-solid fa-wheat-awn floating-icon text-7xl bottom-2 right-32" style="animation-delay: 1.5s;"></i>
+                <i class="fa-solid fa-toilet-paper floating-icon text-6xl top-10 right-56" style="animation-delay: 3s;"></i>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder mb-6">
+                <h3 class="text-lg font-bold mb-6 text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-darkBorder pb-3">Tambah Barang</h3>
+                <form id="form-Stok" class="grid grid-cols-1 md:grid-cols-3 gap-5" onsubmit="submitData(event, 'Stok', 'No')">
                     <input type="hidden" name="No" id="input-no-stok">
-                    <div><label class="block text-sm mb-1">Nama Barang</label><input type="text" name="Nama Barang" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Kategori</label><select name="Kategori" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Makanan">Makanan</option><option value="Minuman">Minuman</option><option value="Sabun Mandi">Sabun Mandi</option><option value="Sabun Cuci">Sabun Cuci</option><option value="Dapur">Dapur</option><option value="Diri Omar">Diri Omar</option><option value="Papah">Papah</option><option value="Bubu">Bubu</option></select></div>
-                    <div><label class="block text-sm mb-1">Satuan</label><input type="text" name="Satuan" placeholder="Cth: kg, botol" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Stok Saat Ini</label><input type="number" name="Stok Saat Ini" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Stok Minimum</label><input type="number" name="Stok Minimum" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Estimasi Harga (Rp)</label><input type="number" name="Estimasi Harga" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Prioritas</label><select name="Prioritas" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Tinggi">Tinggi</option><option value="Sedang" selected>Sedang</option><option value="Rendah">Rendah</option></select></div>
-                    <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 md:col-span-2">Simpan Stok</button>
+                    <div class="md:col-span-2"><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Nama Barang</label><input type="text" name="Nama Barang" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Kategori</label><select name="Kategori" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"><option value="Makanan">Makanan</option><option value="Minuman">Minuman</option><option value="Sabun Mandi">Sabun Mandi</option><option value="Sabun Cuci">Sabun Cuci</option><option value="Dapur">Dapur</option><option value="Diri Omar">Diri Omar</option><option value="Papah">Papah</option><option value="Bubu">Bubu</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Satuan</label><input type="text" name="Satuan" placeholder="Cth: kg, botol" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Stok Saat Ini</label><input type="number" name="Stok Saat Ini" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Stok Minimum</label><input type="number" name="Stok Minimum" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Estimasi Harga (Rp)</label><input type="number" name="Estimasi Harga" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Prioritas</label><select name="Prioritas" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"><option value="Tinggi">Tinggi</option><option value="Sedang" selected>Sedang</option><option value="Rendah">Rendah</option></select></div>
+                    <button type="submit" class="bg-amber-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-amber-600 shadow-md shadow-amber-500/30 md:col-span-3 transition">Simpan Stok</button>
                 </form>
-                <div class="flex justify-between items-center mt-8 mb-2 border-b pb-2">
-                    <h3 class="font-bold">Daftar Stok</h3>
-                    <button onclick="loadData('Stok')" class="text-sm bg-yellow-100 text-yellow-700 px-3 py-1 rounded hover:bg-yellow-200"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200">Daftar Stok</h3>
+                    <button onclick="loadData('Stok')" class="text-sm bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 px-4 py-2 rounded-lg font-semibold hover:bg-amber-100 transition"><i class="fa-solid fa-rotate-right mr-2"></i>Refresh</button>
                 </div>
-                <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead id="thead-Stok" class="bg-gray-100 dark:bg-gray-700"></thead><tbody id="tbody-Stok"></tbody></table></div>
+                <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-darkBorder">
+                    <table class="w-full text-left border-collapse"><thead id="thead-Stok" class="bg-slate-50 dark:bg-slate-800/50"></thead><tbody id="tbody-Stok" class="divide-y divide-slate-100 dark:divide-darkBorder"></tbody></table>
+                </div>
             </div>
         </section>
 
-        <!-- ASET -->
-        <section id="sec-Aset" class="content-section hidden-section relative bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-            <div class="bg-icon-container text-blue-500"><i class="fa-solid fa-house-chimney top-10 right-10" style="animation-delay: 1.5s;"></i><i class="fa-solid fa-motorcycle bottom-10 left-10" style="animation-delay: 3.5s;"></i></div>
-            <div class="content-relative p-6">
-                <h2 class="text-xl font-bold mb-4 text-blue-700 dark:text-blue-400 border-b pb-2">Tambah Aset</h2>
-                <form id="form-Aset" class="grid grid-cols-1 md:grid-cols-2 gap-4" onsubmit="submitData(event, 'Aset', 'No')">
+        <!-- ================= ASET ================= -->
+        <section id="sec-Aset" class="content-section hidden-section animate-fade-in">
+            <div class="relative bg-gradient-to-r from-blue-500 to-indigo-500 rounded-3xl p-8 mb-6 overflow-hidden shadow-lg shadow-blue-500/20 text-white">
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-extrabold mb-2">Manajemen Aset</h2>
+                    <p class="opacity-90">Catat dan pantau kondisi barang berharga Anda.</p>
+                </div>
+                <i class="fa-solid fa-motorcycle floating-icon text-8xl top-4 right-10" style="animation-delay: 1s;"></i>
+                <i class="fa-solid fa-laptop floating-icon text-7xl bottom-2 right-36" style="animation-delay: 2.5s;"></i>
+                <i class="fa-solid fa-house-chimney floating-icon text-6xl top-8 right-64" style="animation-delay: 4s;"></i>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder mb-6">
+                <h3 class="text-lg font-bold mb-6 text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-darkBorder pb-3">Tambah Aset</h3>
+                <form id="form-Aset" class="grid grid-cols-1 md:grid-cols-3 gap-5" onsubmit="submitData(event, 'Aset', 'No')">
                     <input type="hidden" name="No" id="input-no-aset">
-                    <div><label class="block text-sm mb-1">Nama Aset</label><input type="text" name="Nama Aset" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Kategori</label><select name="Kategori" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Tempat Tinggal">Tempat Tinggal</option><option value="Motor">Motor</option><option value="Emas">Emas</option><option value="Barang Elektronik">Barang Elektronik</option></select></div>
-                    <div><label class="block text-sm mb-1">Kondisi</label><select name="Kondisi" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option></select></div>
-                    <div><label class="block text-sm mb-1">Jadwal Servis/Cek</label><input type="date" name="Jadwal Servis/Cek" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Biaya Terakhir (Rp)</label><input type="number" name="Biaya Terakhir" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div class="md:col-span-2"><label class="block text-sm mb-1">Catatan</label><input type="text" name="Catatan" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 md:col-span-2">Simpan Aset</button>
+                    <div class="md:col-span-2"><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Nama Aset</label><input type="text" name="Nama Aset" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Kategori</label><select name="Kategori" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"><option value="Tempat Tinggal">Tempat Tinggal</option><option value="Motor">Motor</option><option value="Emas">Emas</option><option value="Barang Elektronik">Barang Elektronik</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Kondisi</label><select name="Kondisi" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Jadwal Servis/Cek</label><input type="date" name="Jadwal Servis/Cek" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Biaya Terakhir (Rp)</label><input type="number" name="Biaya Terakhir" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                    <div class="md:col-span-3"><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Catatan</label><input type="text" name="Catatan" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                    <button type="submit" class="bg-blue-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-600 shadow-md shadow-blue-500/30 md:col-span-3 transition">Simpan Aset</button>
                 </form>
-                <div class="flex justify-between items-center mt-8 mb-2 border-b pb-2">
-                    <h3 class="font-bold">Daftar Aset</h3>
-                    <button onclick="loadData('Aset')" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200">Daftar Aset</h3>
+                    <button onclick="loadData('Aset')" class="text-sm bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 px-4 py-2 rounded-lg font-semibold hover:bg-blue-100 transition"><i class="fa-solid fa-rotate-right mr-2"></i>Refresh</button>
                 </div>
-                <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead id="thead-Aset" class="bg-gray-100 dark:bg-gray-700"></thead><tbody id="tbody-Aset"></tbody></table></div>
+                <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-darkBorder">
+                    <table class="w-full text-left border-collapse"><thead id="thead-Aset" class="bg-slate-50 dark:bg-slate-800/50"></thead><tbody id="tbody-Aset" class="divide-y divide-slate-100 dark:divide-darkBorder"></tbody></table>
+                </div>
             </div>
         </section>
 
-        <!-- KESEHATAN -->
-        <section id="sec-Kesehatan" class="content-section hidden-section relative bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-            <div class="bg-icon-container text-teal-500"><i class="fa-solid fa-pills top-10 left-10" style="animation-delay: 0.2s;"></i><i class="fa-solid fa-stethoscope bottom-10 right-10" style="animation-delay: 2.8s;"></i></div>
-            <div class="content-relative p-6">
-                <h2 class="text-xl font-bold mb-4 text-teal-700 dark:text-teal-400 border-b pb-2">Catatan Kesehatan</h2>
-                <form id="form-Kesehatan" class="grid grid-cols-1 md:grid-cols-2 gap-4" onsubmit="submitData(event, 'Kesehatan', 'No')">
+        <!-- ================= KESEHATAN ================= -->
+        <section id="sec-Kesehatan" class="content-section hidden-section animate-fade-in">
+            <div class="relative bg-gradient-to-r from-teal-400 to-emerald-500 rounded-3xl p-8 mb-6 overflow-hidden shadow-lg shadow-teal-500/20 text-white">
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-extrabold mb-2">Kesehatan Keluarga</h2>
+                    <p class="opacity-90">Pantau jadwal berobat dan stok obat-obatan.</p>
+                </div>
+                <i class="fa-solid fa-stethoscope floating-icon text-8xl top-4 right-10" style="animation-delay: 0.5s;"></i>
+                <i class="fa-solid fa-pills floating-icon text-7xl bottom-2 right-36" style="animation-delay: 2s;"></i>
+                <i class="fa-solid fa-hospital floating-icon text-6xl top-8 right-64" style="animation-delay: 3.5s;"></i>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder mb-6">
+                <h3 class="text-lg font-bold mb-6 text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-darkBorder pb-3">Catatan Kesehatan</h3>
+                <form id="form-Kesehatan" class="grid grid-cols-1 md:grid-cols-3 gap-5" onsubmit="submitData(event, 'Kesehatan', 'No')">
                     <input type="hidden" name="No" id="input-no-kesehatan">
-                    <div><label class="block text-sm mb-1">Nama Anggota</label><select name="Nama Anggota" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Papah">Papah</option><option value="Bubu">Bubu</option><option value="Omar">Omar</option></select></div>
-                    <div><label class="block text-sm mb-1">Kategori</label><select name="Jenis Catatan" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Sakit">Sakit</option><option value="Berobat">Berobat</option><option value="Kontrol">Kontrol</option></select></div>
-                    <div><label class="block text-sm mb-1">Tindakan</label><select name="Tindakan" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Obat Apotek">Obat Apotek</option><option value="Obat Dokter">Obat Dokter</option><option value="Istirahat">Istirahat</option></select></div>
-                    <div><label class="block text-sm mb-1">Tanggal & Jam</label><input type="datetime-local" name="Tanggal" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Status</label><select name="Status" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Terjadwal">Terjadwal</option><option value="Selesai">Selesai</option><option value="Habis">Habis</option></select></div>
-                    <div class="md:col-span-2"><label class="block text-sm mb-1">Catatan</label><input type="text" name="Catatan" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <button type="submit" class="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600 md:col-span-2">Simpan Catatan</button>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Nama Anggota</label><select name="Nama Anggota" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"><option value="Papah">Papah</option><option value="Bubu">Bubu</option><option value="Omar">Omar</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Kategori</label><select name="Jenis Catatan" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"><option value="Sakit">Sakit</option><option value="Berobat">Berobat</option><option value="Kontrol">Kontrol</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Tindakan</label><select name="Tindakan" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"><option value="Obat Apotek">Obat Apotek</option><option value="Obat Dokter">Obat Dokter</option><option value="Istirahat">Istirahat</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Tanggal & Jam</label><input type="datetime-local" name="Tanggal" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Status</label><select name="Status" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"><option value="Terjadwal">Terjadwal</option><option value="Selesai">Selesai</option><option value="Habis">Habis</option></select></div>
+                    <div class="md:col-span-3"><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Catatan</label><input type="text" name="Catatan" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"></div>
+                    <button type="submit" class="bg-teal-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-teal-600 shadow-md shadow-teal-500/30 md:col-span-3 transition">Simpan Catatan</button>
                 </form>
-                <div class="flex justify-between items-center mt-8 mb-2 border-b pb-2">
-                    <h3 class="font-bold">Data Kesehatan</h3>
-                    <button onclick="loadData('Kesehatan')" class="text-sm bg-teal-100 text-teal-700 px-3 py-1 rounded hover:bg-teal-200"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200">Riwayat Kesehatan</h3>
+                    <button onclick="loadData('Kesehatan')" class="text-sm bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400 px-4 py-2 rounded-lg font-semibold hover:bg-teal-100 transition"><i class="fa-solid fa-rotate-right mr-2"></i>Refresh</button>
                 </div>
-                <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead id="thead-Kesehatan" class="bg-gray-100 dark:bg-gray-700"></thead><tbody id="tbody-Kesehatan"></tbody></table></div>
+                <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-darkBorder">
+                    <table class="w-full text-left border-collapse"><thead id="thead-Kesehatan" class="bg-slate-50 dark:bg-slate-800/50"></thead><tbody id="tbody-Kesehatan" class="divide-y divide-slate-100 dark:divide-darkBorder"></tbody></table>
+                </div>
             </div>
         </section>
 
-        <!-- TUJUAN -->
-        <section id="sec-Tujuan" class="content-section hidden-section relative bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
-            <div class="bg-icon-container text-blue-700"><i class="fa-solid fa-plane top-10 right-10" style="animation-delay: 1s;"></i><i class="fa-solid fa-bullseye bottom-10 left-10" style="animation-delay: 3s;"></i></div>
-            <div class="content-relative p-6">
-                <h2 class="text-xl font-bold mb-4 text-blue-800 dark:text-blue-400 border-b pb-2">Tambah Tujuan</h2>
-                <form id="form-Tujuan" class="grid grid-cols-1 md:grid-cols-2 gap-4" onsubmit="submitData(event, 'Tujuan', 'No')">
+        <!-- ================= TUJUAN ================= -->
+        <section id="sec-Tujuan" class="content-section hidden-section animate-fade-in">
+            <div class="relative bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl p-8 mb-6 overflow-hidden shadow-lg shadow-indigo-500/20 text-white">
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-extrabold mb-2">Tujuan Finansial</h2>
+                    <p class="opacity-90">Rencanakan dan wujudkan impian keluarga Anda.</p>
+                </div>
+                <i class="fa-solid fa-plane floating-icon text-8xl top-4 right-10" style="animation-delay: 1.2s;"></i>
+                <i class="fa-solid fa-bullseye floating-icon text-7xl bottom-2 right-36" style="animation-delay: 2.7s;"></i>
+                <i class="fa-solid fa-house floating-icon text-6xl top-8 right-64" style="animation-delay: 4.2s;"></i>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder mb-6">
+                <h3 class="text-lg font-bold mb-6 text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-darkBorder pb-3">Buat Tujuan Baru</h3>
+                <form id="form-Tujuan" class="grid grid-cols-1 md:grid-cols-3 gap-5" onsubmit="submitData(event, 'Tujuan', 'No')">
                     <input type="hidden" name="No" id="input-no-tujuan">
-                    <div><label class="block text-sm mb-1">Nama Tujuan</label><input type="text" name="Nama Tujuan" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Kategori</label><select name="Kategori" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Tambah Aset">Tambah Aset</option><option value="Liburan">Liburan</option><option value="Tambah Perabotan">Tambah Perabotan</option><option value="Pendidikan">Pendidikan</option><option value="Kendaraan">Kendaraan</option></select></div>
-                    <div><label class="block text-sm mb-1">Target Dana (Rp)</label><input type="number" name="Target Dana (Rp)" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Dana Terkumpul (Rp)</label><input type="number" name="Dana Terkumpul (Rp)" required class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Target Waktu</label><input type="date" name="Target Waktu" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"></div>
-                    <div><label class="block text-sm mb-1">Status</label><select name="Status" class="w-full border p-2 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"><option value="Berjalan">Berjalan</option><option value="Tercapai">Tercapai</option><option value="Dibatalkan">Dibatalkan</option></select></div>
-                    <button type="submit" class="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 md:col-span-2">Simpan Tujuan</button>
+                    <div class="md:col-span-2"><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Nama Tujuan</label><input type="text" name="Nama Tujuan" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Kategori</label><select name="Kategori" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"><option value="Tambah Aset">Tambah Aset</option><option value="Liburan">Liburan</option><option value="Tambah Perabotan">Tambah Perabotan</option><option value="Pendidikan">Pendidikan</option><option value="Kendaraan">Kendaraan</option></select></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Target Dana (Rp)</label><input type="number" name="Target Dana (Rp)" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Dana Awal (Rp)</label><input type="number" name="Dana Terkumpul (Rp)" value="0" required class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Target Waktu</label><input type="date" name="Target Waktu" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                    <div><label class="block text-sm font-semibold mb-2 text-slate-600 dark:text-slate-400">Status</label><select name="Status" class="w-full bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-darkBorder p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"><option value="Berjalan">Berjalan</option><option value="Tercapai">Tercapai</option><option value="Dibatalkan">Dibatalkan</option></select></div>
+                    <button type="submit" class="bg-indigo-500 text-white font-bold px-6 py-3 rounded-xl hover:bg-indigo-600 shadow-md shadow-indigo-500/30 md:col-span-3 transition">Simpan Tujuan</button>
                 </form>
-                <div class="flex justify-between items-center mt-8 mb-2 border-b pb-2">
-                    <h3 class="font-bold">Daftar Tujuan</h3>
-                    <button onclick="loadData('Tujuan')" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded hover:bg-blue-200"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
+            </div>
+
+            <div class="bg-white dark:bg-darkCard p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-darkBorder">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200">Daftar Tujuan</h3>
+                    <button onclick="loadData('Tujuan')" class="text-sm bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 px-4 py-2 rounded-lg font-semibold hover:bg-indigo-100 transition"><i class="fa-solid fa-rotate-right mr-2"></i>Refresh</button>
                 </div>
-                <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead id="thead-Tujuan" class="bg-gray-100 dark:bg-gray-700"></thead><tbody id="tbody-Tujuan"></tbody></table></div>
+                <div class="overflow-x-auto rounded-xl border border-slate-100 dark:border-darkBorder">
+                    <table class="w-full text-left border-collapse"><thead id="thead-Tujuan" class="bg-slate-50 dark:bg-slate-800/50"></thead><tbody id="tbody-Tujuan" class="divide-y divide-slate-100 dark:divide-darkBorder"></tbody></table>
+                </div>
             </div>
         </section>
 
-        <div id="notif" class="fixed bottom-5 right-5 bg-gray-800 text-white px-6 py-3 rounded shadow-lg hidden-section z-50 font-medium border border-gray-600">Berhasil!</div>
+        <div id="notif" class="fixed bottom-5 right-5 bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl hidden-section z-50 font-medium border border-slate-600 flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i> <span id="notifText">Berhasil!</span>
+        </div>
     </div>
 
+    <!-- JAVASCRIPT LOGIC (Sama seperti sebelumnya, hanya disesuaikan sedikit untuk UI baru) -->
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxMdNJqqHHSZi20qVlP0z4MHQzk7r47EZNWlnvWiMcc4h7BcKedEUPgskUppFotYzie/exec";
         let chartPengeluaranInstance = null, chartTugasInstance = null, chartTrenInstance = null;
         let rawKeuanganData = [];
 
-        // Minta izin notifikasi browser
-        if ("Notification" in window && Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
+        if ("Notification" in window && Notification.permission !== "granted") Notification.requestPermission();
 
-        // Dark Mode
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
             document.getElementById('themeIcon').classList.replace('fa-moon', 'fa-sun');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        } else { document.documentElement.classList.remove('dark'); }
+
         function toggleDarkMode() {
             if (document.documentElement.classList.contains('dark')) {
                 document.documentElement.classList.remove('dark');
@@ -289,23 +415,23 @@
             if(!document.getElementById('sec-Dashboard').classList.contains('hidden-section')) loadDashboard();
         }
 
-        // Navigasi Tab
         const tabColors = {
-            'Dashboard': { active: 'text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white bg-gray-100 dark:bg-gray-700', inactive: 'text-gray-500' },
-            'Keuangan': { active: 'text-green-600 border-b-2 border-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400', inactive: 'text-gray-500' },
-            'Tugas': { active: 'text-orange-500 border-b-2 border-orange-500 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400', inactive: 'text-gray-500' },
-            'Stok': { active: 'text-yellow-600 border-b-2 border-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400', inactive: 'text-gray-500' },
-            'Aset': { active: 'text-blue-600 border-b-2 border-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400', inactive: 'text-gray-500' },
-            'Kesehatan': { active: 'text-teal-600 border-b-2 border-teal-600 bg-teal-50 dark:bg-teal-900/20 dark:text-teal-400', inactive: 'text-gray-500' },
-            'Tujuan': { active: 'text-blue-900 border-b-2 border-blue-900 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300', inactive: 'text-gray-500' }
+            'Dashboard': { active: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300 shadow-sm' },
+            'Keuangan': { active: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300 shadow-sm' },
+            'Tugas': { active: 'bg-orange-50 text-orange-600 dark:bg-orange-500/20 dark:text-orange-300 shadow-sm' },
+            'Stok': { active: 'bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300 shadow-sm' },
+            'Aset': { active: 'bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 shadow-sm' },
+            'Kesehatan': { active: 'bg-teal-50 text-teal-600 dark:bg-teal-500/20 dark:text-teal-300 shadow-sm' },
+            'Tujuan': { active: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300 shadow-sm' }
         };
 
         function switchTab(tabName) {
             document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden-section'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.className = 'tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium text-gray-500 dark:text-gray-400 transition-colors');
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.className = 'tab-btn flex-shrink-0 py-2.5 px-5 text-sm font-semibold rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all';
+            });
+            document.getElementById('tab-' + tabName).className = `tab-btn flex-shrink-0 py-2.5 px-5 text-sm font-semibold rounded-xl transition-all ${tabColors[tabName].active}`;
             
-            const activeTab = document.getElementById('tab-' + tabName);
-            activeTab.className = `tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-semibold ${tabColors[tabName].active}`;
             document.getElementById('sec-' + tabName).classList.remove('hidden-section');
             
             if (tabName === 'Dashboard') {
@@ -313,12 +439,10 @@
                 else loadDashboard();
             } else {
                 loadData(tabName);
-                // Auto-ID Logic
                 if(['Tugas', 'Stok', 'Aset', 'Kesehatan', 'Tujuan'].includes(tabName)) generateAutoID(tabName);
             }
         }
 
-        // LOGIKA AUTO ID
         async function generateAutoID(sheetName) {
             try {
                 const response = await fetch(`${API_URL}?sheet=${sheetName}`);
@@ -326,8 +450,7 @@
                 let maxId = 0;
                 if (Array.isArray(data) && data.length > 0) {
                     data.forEach(row => {
-                        let idStr = sheetName === 'Tugas' ? row['ID Tugas'] : row['No'];
-                        let idNum = parseInt(idStr);
+                        let idNum = parseInt(sheetName === 'Tugas' ? row['ID Tugas'] : row['No']);
                         if (!isNaN(idNum) && idNum > maxId) maxId = idNum;
                     });
                 }
@@ -337,10 +460,9 @@
                 if(sheetName === 'Aset') document.getElementById('input-no-aset').value = newId;
                 if(sheetName === 'Kesehatan') document.getElementById('input-no-kesehatan').value = newId;
                 if(sheetName === 'Tujuan') document.getElementById('input-no-tujuan').value = newId;
-            } catch(e) { console.log("Gagal generate ID", e); }
+            } catch(e) {}
         }
 
-        // DASHBOARD LOGIC
         async function initDashboardData() {
             try {
                 const [keuangan, tugas, stok, tujuan] = await Promise.all([
@@ -367,7 +489,7 @@
                 window.dashStokData = Array.isArray(stok) ? stok : [];
                 window.dashTujuanData = Array.isArray(tujuan) ? tujuan : [];
                 loadDashboard();
-            } catch (error) { console.error("Gagal inisialisasi:", error); }
+            } catch (error) {}
         }
 
         function loadDashboard() {
@@ -376,8 +498,7 @@
 
             let filteredKeuangan = rawKeuanganData.filter(row => {
                 if(!row['Tanggal']) return false;
-                let dateStr = typeof row['Tanggal'] === 'string' ? row['Tanggal'].split('T')[0] : "";
-                let parts = dateStr.split('-');
+                let parts = (typeof row['Tanggal'] === 'string' ? row['Tanggal'].split('T')[0] : "").split('-');
                 if(parts.length !== 3) return false;
                 return (selectedYear === 'all' || parts[0] === selectedYear) && (selectedMonth === 'all' || parts[1] === selectedMonth);
             });
@@ -395,8 +516,7 @@
                 else if (row['Status'] === 'Proses') tugasProses++;
                 else if (row['Status'] === 'Selesai') tugasSelesai++;
             });
-            tugasAktif = tugasBelum + tugasProses;
-            document.getElementById('dash-tugas').innerText = tugasAktif + ' Tugas';
+            document.getElementById('dash-tugas').innerText = (tugasBelum + tugasProses) + ' Tugas';
 
             let stokKritis = 0;
             window.dashStokData.forEach(row => {
@@ -413,17 +533,15 @@
             
             let lineChartData = rawKeuanganData.filter(row => {
                 if(!row['Tanggal']) return false;
-                let dateStr = typeof row['Tanggal'] === 'string' ? row['Tanggal'].split('T')[0] : "";
-                let y = dateStr.split('-')[0];
-                return (selectedYear === 'all' || y === selectedYear);
+                let parts = (typeof row['Tanggal'] === 'string' ? row['Tanggal'].split('T')[0] : "").split('-');
+                return (selectedYear === 'all' || parts[0] === selectedYear);
             });
             renderLineChart(lineChartData, selectedYear);
         }
 
-        // RENDER GRAFIK
         function getChartTheme() {
             const isDark = document.documentElement.classList.contains('dark');
-            return { textColor: isDark ? '#e5e7eb' : '#374151', gridColor: isDark ? '#374151' : '#e5e7eb' };
+            return { textColor: isDark ? '#cbd5e1' : '#475569', gridColor: isDark ? '#334155' : '#e2e8f0' };
         }
 
         function renderPieChart(data) {
@@ -443,8 +561,8 @@
             }
             chartPengeluaranInstance = new Chart(ctx, {
                 type: 'doughnut',
-                data: { labels: Object.keys(kategoriData), datasets: [{ data: Object.values(kategoriData), backgroundColor: ['#34d399', '#10b981', '#059669', '#6ee7b7', '#a7f3d0', '#047857', '#fbbf24', '#f87171', '#60a5fa'], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: getChartTheme().textColor } } } }
+                data: { labels: Object.keys(kategoriData), datasets: [{ data: Object.values(kategoriData), backgroundColor: ['#34d399', '#10b981', '#059669', '#6ee7b7', '#a7f3d0', '#047857', '#fbbf24', '#f87171', '#60a5fa'], borderWidth: 0, hoverOffset: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: getChartTheme().textColor, usePointStyle: true, boxWidth: 8 } } } }
             });
         }
 
@@ -458,8 +576,8 @@
             }
             chartTugasInstance = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: ['Belum', 'Proses', 'Selesai'], datasets: [{ data: [belum, proses, selesai], backgroundColor: ['#fb923c', '#fbbf24', '#34d399'], borderRadius: 6 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: getChartTheme().textColor } }, y: { beginAtZero: true, ticks: { stepSize: 1, color: getChartTheme().textColor } } } }
+                data: { labels: ['Belum', 'Proses', 'Selesai'], datasets: [{ data: [belum, proses, selesai], backgroundColor: ['#fb923c', '#fbbf24', '#34d399'], borderRadius: 8, barThickness: 40 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: getChartTheme().textColor }, grid: { display: false } }, y: { beginAtZero: true, ticks: { stepSize: 1, color: getChartTheme().textColor }, grid: { color: getChartTheme().gridColor, drawBorder: false } } } }
             });
         }
 
@@ -480,75 +598,76 @@
                 data: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
                     datasets: [
-                        { label: `Pemasukan (${selectedYear})`, data: Object.values(monthlyData).map(d => d.in), borderColor: '#34d399', tension: 0.3, fill: true, backgroundColor: 'rgba(52, 211, 153, 0.1)' },
-                        { label: `Pengeluaran (${selectedYear})`, data: Object.values(monthlyData).map(d => d.out), borderColor: '#f87171', tension: 0.3, fill: true, backgroundColor: 'rgba(248, 113, 113, 0.1)' }
+                        { label: `Pemasukan (${selectedYear})`, data: Object.values(monthlyData).map(d => d.in), borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)', pointBackgroundColor: '#10b981', pointRadius: 4, pointHoverRadius: 6 },
+                        { label: `Pengeluaran (${selectedYear})`, data: Object.values(monthlyData).map(d => d.out), borderColor: '#f43f5e', tension: 0.4, fill: true, backgroundColor: 'rgba(244, 63, 94, 0.1)', pointBackgroundColor: '#f43f5e', pointRadius: 4, pointHoverRadius: 6 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: getChartTheme().textColor } } }, scales: { x: { ticks: { color: getChartTheme().textColor } }, y: { ticks: { color: getChartTheme().textColor }, grid: { color: getChartTheme().gridColor } } } }
+                options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { labels: { color: getChartTheme().textColor, usePointStyle: true } } }, scales: { x: { ticks: { color: getChartTheme().textColor }, grid: { display: false } }, y: { ticks: { color: getChartTheme().textColor, callback: (v) => 'Rp ' + v.toLocaleString('id-ID') }, grid: { color: getChartTheme().gridColor, drawBorder: false } } } }
             });
         }
 
-        // CRUD DATA TABEL & TOMBOL AKSI
         async function loadData(sheetName) {
             const thead = document.getElementById('thead-' + sheetName);
             const tbody = document.getElementById('tbody-' + sheetName);
-            tbody.innerHTML = '<tr><td colspan="10" class="text-center p-4 text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat data...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center p-6 text-slate-500"><i class="fa-solid fa-circle-notch fa-spin mr-2 text-indigo-500"></i>Memuat data...</td></tr>';
 
             try {
                 const response = await fetch(`${API_URL}?sheet=${sheetName}`);
                 let data = await response.json();
                 
                 if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="10" class="text-center p-4 text-gray-500">Belum ada data.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10" class="text-center p-6 text-slate-500 font-medium">Belum ada data yang tercatat.</td></tr>';
                     return;
                 }
 
-                // Filter out completed tasks (Auto hide)
-                if (sheetName === 'Tugas') {
-                    data = data.filter(row => row['Status'] !== 'Selesai');
-                }
+                if (sheetName === 'Tugas') data = data.filter(row => row['Status'] !== 'Selesai');
 
                 const headers = Object.keys(data[0]);
                 const idField = sheetName === 'Tugas' ? 'ID Tugas' : 'No';
                 
-                // Header Tabel
-                let headerHTML = '<tr class="border-b dark:border-gray-600">';
-                headers.forEach(h => headerHTML += `<th class="p-2 text-sm font-semibold text-gray-700 dark:text-gray-300">${h}</th>`);
-                // Kolom Aksi (Edit/Hapus)
-                if(['Stok', 'Aset', 'Tujuan'].includes(sheetName)) headerHTML += '<th class="p-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Aksi</th>';
-                if(sheetName === 'Tugas') headerHTML += '<th class="p-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Hapus</th>';
+                let headerHTML = '<tr>';
+                headers.forEach(h => headerHTML += `<th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">${h}</th>`);
+                if(['Stok', 'Aset', 'Tujuan'].includes(sheetName)) headerHTML += '<th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center">Aksi</th>';
+                if(sheetName === 'Tugas') headerHTML += '<th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center">Selesai / Hapus</th>';
                 headerHTML += '</tr>';
                 thead.innerHTML = headerHTML;
 
                 tbody.innerHTML = data.reverse().map(row => {
-                    let tr = '<tr class="border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50">';
+                    let tr = '<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">';
                     headers.forEach(h => {
                         let val = row[h] || "";
                         if (typeof val === 'string' && val.includes('T') && val.length > 10) val = val.replace('T', ' ');
                         if (h.includes('Rp') && val) val = 'Rp ' + Number(val).toLocaleString('id-ID');
-                        // Hitung persentase Tujuan
                         if (sheetName === 'Tujuan' && h === 'Persentase (%)') {
                             let target = Number(row['Target Dana (Rp)']) || 1;
                             let terkumpul = Number(row['Dana Terkumpul (Rp)']) || 0;
                             val = Math.round((terkumpul / target) * 100) + '%';
                         }
-                        tr += `<td class="p-2 text-sm text-gray-600 dark:text-gray-300">${val}</td>`;
+                        
+                        // Styling khusus untuk Status Tugas
+                        if(sheetName === 'Tugas' && h === 'Status') {
+                            let color = val === 'Belum' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700';
+                            tr += `<td class="p-4 text-sm font-medium"><span class="px-2.5 py-1 rounded-md text-xs ${color}">${val}</span></td>`;
+                        } else {
+                            tr += `<td class="p-4 text-sm font-medium text-slate-700 dark:text-slate-300">${val}</td>`;
+                        }
                     });
 
-                    // Tombol Aksi
                     if(['Stok', 'Aset', 'Tujuan'].includes(sheetName)) {
-                        tr += `<td class="p-2 text-sm">
-                            <button onclick="editData('${sheetName}', '${idField}', '${row[idField]}')" class="text-blue-500 hover:text-blue-700 mr-2"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteData('${sheetName}', '${idField}', '${row[idField]}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                        tr += `<td class="p-4 text-sm text-center">
+                            <button onclick="editData('${sheetName}', '${idField}', '${row[idField]}')" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition mr-1"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteData('${sheetName}', '${idField}', '${row[idField]}')" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition"><i class="fa-solid fa-trash"></i></button>
                         </td>`;
                     } else if(sheetName === 'Tugas') {
-                        tr += `<td class="p-2 text-sm"><button onclick="deleteData('${sheetName}', '${idField}', '${row[idField]}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td>`;
+                        tr += `<td class="p-4 text-sm text-center">
+                            <button onclick="deleteData('${sheetName}', '${idField}', '${row[idField]}')" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                        </td>`;
                     }
                     return tr + '</tr>';
                 }).join('');
 
             } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500">Gagal memuat data.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center p-6 text-rose-500 font-medium">Gagal memuat data. Periksa koneksi internet Anda.</td></tr>`;
             }
         }
 
@@ -573,9 +692,8 @@
                 if (result.status === "success") {
                     form.reset(); showNotif("Data berhasil disimpan!");
                     
-                    // Notifikasi Browser
                     if ("Notification" in window && Notification.permission === "granted") {
-                        new Notification("RumaKita: Data Tersimpan", { body: `Data di bagian ${sheetName} berhasil ditambahkan.` });
+                        new Notification("RumaKita", { body: `Data di bagian ${sheetName} berhasil ditambahkan.` });
                     }
 
                     loadData(sheetName); 
@@ -587,60 +705,56 @@
         }
 
         async function deleteData(sheetName, idField, idValue) {
-            if(!confirm('Yakin ingin menghapus data ini secara permanen dari Spreadsheet?')) return;
+            if(!confirm('Yakin ingin menghapus data ini secara permanen?')) return;
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'delete', sheetName: sheetName, idField: idField, data: { [idField]: idValue } })
                 });
                 const result = await response.json();
-                if (result.status === "success") { showNotif("Data dihapus!"); loadData(sheetName); }
+                if (result.status === "success") { showNotif("Data berhasil dihapus!"); loadData(sheetName); }
             } catch (error) { alert("Gagal menghapus data."); }
         }
 
         async function editData(sheetName, idField, idValue) {
-            // Fitur Edit Sederhana via Prompt (Untuk Stok dan Tujuan)
             if (sheetName === 'Stok') {
                 let newStok = prompt("Masukkan jumlah Stok Saat Ini yang baru (Angka):");
                 if (newStok !== null && newStok !== "") {
                     let data = { [idField]: idValue, "Stok Saat Ini": newStok };
-                    // Hitung ulang status (opsional, rumus spreadsheet otomatis handle ini jika ada)
                     await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'update', sheetName, idField, data }) });
-                    loadData(sheetName); showNotif("Stok diupdate!");
+                    loadData(sheetName); showNotif("Stok berhasil diupdate!");
                 }
             } else if (sheetName === 'Tujuan') {
                 let tambahDana = prompt("Masukkan nominal dana yang ingin ditambahkan (Rp):");
                 if (tambahDana !== null && tambahDana !== "") {
                     let nominal = Number(tambahDana);
-                    // Ambil data saat ini untuk dijumlahkan
                     const response = await fetch(`${API_URL}?sheet=Tujuan`);
                     const rows = await response.json();
                     const rowTarget = rows.find(r => r[idField].toString() === idValue.toString());
                     if(rowTarget) {
-                        let terkumpulLama = Number(rowTarget['Dana Terkumpul (Rp)']) || 0;
-                        let totalBaru = terkumpulLama + nominal;
+                        let totalBaru = (Number(rowTarget['Dana Terkumpul (Rp)']) || 0) + nominal;
                         let target = Number(rowTarget['Target Dana (Rp)']) || 1;
                         let persen = Math.round((totalBaru / target) * 100);
-
-                        let data = { 
-                            [idField]: idValue, 
-                            "Dana Terkumpul (Rp)": totalBaru,
-                            "Persentase (%)": persen + "%"
-                        };
+                        let data = { [idField]: idValue, "Dana Terkumpul (Rp)": totalBaru, "Persentase (%)": persen + "%" };
                         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'update', sheetName, idField, data }) });
                         loadData(sheetName); showNotif("Dana berhasil ditambahkan!");
                     }
                 }
-            } else {
-                alert("Fitur edit detail untuk bagian ini dapat dilakukan langsung di Google Sheets.");
-            }
+            } else { alert("Fitur edit untuk bagian ini dapat dilakukan langsung di Google Sheets."); }
         }
 
         function showNotif(msg) {
             const notif = document.getElementById('notif');
-            notif.innerHTML = `<i class="fa-solid fa-circle-check text-green-400 mr-2"></i>${msg}`;
+            document.getElementById('notifText').innerText = msg;
             notif.classList.remove('hidden-section');
-            setTimeout(() => notif.classList.add('hidden-section'), 3000);
+            // Animasi masuk
+            notif.classList.add('translate-y-0', 'opacity-100');
+            notif.classList.remove('translate-y-4', 'opacity-0');
+            
+            setTimeout(() => {
+                notif.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => notif.classList.add('hidden-section'), 300);
+            }, 3000);
         }
 
         window.onload = () => { switchTab('Dashboard'); };
