@@ -4,182 +4,509 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RumaKita - Manajemen Rumah Tangga</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js untuk Grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: bold; }
         .hidden-section { display: none !important; }
+        .icon-hover { transition: transform 0.2s; }
+        .icon-hover:hover { transform: scale(1.2); }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
 
     <div class="max-w-6xl mx-auto p-4 md:p-6 mt-5">
-        <header class="mb-6 text-center">
-            <h1 class="text-3xl font-bold text-blue-600">🏠 RumaKita</h1>
+        <!-- Header -->
+        <header class="mb-6 text-center flex flex-col items-center justify-center">
+            <h1 class="text-3xl font-bold text-gray-800"><i class="fa-solid fa-house-chimney text-blue-600 mr-2"></i>RumaKita</h1>
             <p class="text-gray-500">Sistem Pemantau Rumah Tangga Terpadu</p>
         </header>
 
-        <div class="flex overflow-x-auto border-b border-gray-300 mb-6 bg-white rounded-t-lg px-2">
-            <button onclick="switchTab('Keuangan')" id="tab-Keuangan" class="tab-active py-3 px-4 text-sm md:text-base whitespace-nowrap">Keuangan</button>
-            <button onclick="switchTab('Tugas')" id="tab-Tugas" class="py-3 px-4 text-sm md:text-base whitespace-nowrap hover:text-blue-500">Tugas</button>
-            <button onclick="switchTab('Stok')" id="tab-Stok" class="py-3 px-4 text-sm md:text-base whitespace-nowrap hover:text-blue-500">Stok</button>
-            <button onclick="switchTab('Aset')" id="tab-Aset" class="py-3 px-4 text-sm md:text-base whitespace-nowrap hover:text-blue-500">Aset</button>
-            <button onclick="switchTab('Kesehatan')" id="tab-Kesehatan" class="py-3 px-4 text-sm md:text-base whitespace-nowrap hover:text-blue-500">Kesehatan</button>
-            <button onclick="switchTab('Tujuan')" id="tab-Tujuan" class="py-3 px-4 text-sm md:text-base whitespace-nowrap hover:text-blue-500">Tujuan</button>
+        <!-- Menu Navigasi Tab -->
+        <div class="flex overflow-x-auto border-b border-gray-300 mb-6 bg-white rounded-t-lg px-2 shadow-sm">
+            <button onclick="switchTab('Dashboard')" id="tab-Dashboard" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium">
+                <i class="fa-solid fa-chart-pie mr-1"></i> Beranda
+            </button>
+            <button onclick="switchTab('Keuangan')" id="tab-Keuangan" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium">Keuangan</button>
+            <button onclick="switchTab('Tugas')" id="tab-Tugas" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium">Tugas</button>
+            <button onclick="switchTab('Stok')" id="tab-Stok" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium">Stok</button>
+            <button onclick="switchTab('Aset')" id="tab-Aset" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium">Aset</button>
+            <button onclick="switchTab('Kesehatan')" id="tab-Kesehatan" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium">Kesehatan</button>
+            <button onclick="switchTab('Tujuan')" id="tab-Tujuan" class="tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium">Tujuan</button>
         </div>
 
-        <!-- KEUANGAN -->
-        <section id="sec-Keuangan" class="content-section">
-            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Catat Keuangan</h2>
+        <!-- ================= DASHBOARD (Beranda) ================= -->
+        <section id="sec-Dashboard" class="content-section">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-700">Ringkasan Hari Ini</h2>
+                <button onclick="loadDashboard()" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 transition">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Refresh Data
+                </button>
+            </div>
+            
+            <!-- Kartu Ringkasan -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Kartu Keuangan -->
+                <div class="bg-gradient-to-br from-green-400 to-green-600 rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+                    <i class="fa-solid fa-wallet absolute right-[-10px] bottom-[-10px] text-6xl opacity-20"></i>
+                    <p class="text-sm font-medium opacity-90">Sisa Saldo</p>
+                    <h3 id="dash-saldo" class="text-2xl font-bold mt-2">Memuat...</h3>
+                </div>
+
+                <!-- Kartu Tugas -->
+                <div class="bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+                    <i class="fa-solid fa-clipboard-list absolute right-[-10px] bottom-[-10px] text-6xl opacity-20"></i>
+                    <p class="text-sm font-medium opacity-90">Tugas Belum Selesai</p>
+                    <h3 id="dash-tugas" class="text-2xl font-bold mt-2">Memuat...</h3>
+                </div>
+
+                <!-- Kartu Stok -->
+                <div class="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+                    <i class="fa-solid fa-cart-shopping absolute right-[-10px] bottom-[-10px] text-6xl opacity-20"></i>
+                    <p class="text-sm font-medium opacity-90">Stok Menipis / Habis</p>
+                    <h3 id="dash-stok" class="text-2xl font-bold mt-2">Memuat...</h3>
+                </div>
+
+                <!-- Kartu Tujuan -->
+                <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-5 text-white shadow-lg relative overflow-hidden">
+                    <i class="fa-solid fa-bullseye absolute right-[-10px] bottom-[-10px] text-6xl opacity-20"></i>
+                    <p class="text-sm font-medium opacity-90">Total Dana Tujuan</p>
+                    <h3 id="dash-tujuan" class="text-2xl font-bold mt-2">Memuat...</h3>
+                </div>
+            </div>
+
+            <!-- Area Grafik -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Grafik Pengeluaran -->
+                <div class="bg-white p-5 rounded-xl shadow-md border-t-4 border-green-400">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4"><i class="fa-solid fa-chart-pie text-green-500 mr-2"></i>Pengeluaran per Kategori</h3>
+                    <div id="emptyPieMsg" class="text-center text-gray-400 py-10 hidden-section">Belum ada data pengeluaran.</div>
+                    <div class="chart-container" id="pieContainer">
+                        <canvas id="chartPengeluaran"></canvas>
+                    </div>
+                </div>
+
+                <!-- Grafik Tugas -->
+                <div class="bg-white p-5 rounded-xl shadow-md border-t-4 border-orange-400">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4"><i class="fa-solid fa-chart-bar text-orange-500 mr-2"></i>Status Tugas</h3>
+                    <div id="emptyBarMsg" class="text-center text-gray-400 py-10 hidden-section">Belum ada data tugas.</div>
+                    <div class="chart-container" id="barContainer">
+                        <canvas id="chartTugas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= KEUANGAN ================= -->
+        <section id="sec-Keuangan" class="content-section hidden-section">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-green-700 flex items-center justify-center gap-6 text-2xl shadow-sm">
+                <i class="fa-solid fa-money-bill-wave icon-hover"></i>
+                <i class="fa-solid fa-coins icon-hover"></i>
+                <i class="fa-solid fa-calculator icon-hover"></i>
+                <i class="fa-solid fa-pencil icon-hover"></i>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 border-t-4 border-green-400">
+                <h2 class="text-xl font-semibold mb-4 text-green-700">Catat Keuangan</h2>
                 <form id="form-Keuangan" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Keuangan')">
-                    <input type="date" name="Tanggal" required class="border p-2 rounded">
-                    <select name="Tipe" required class="border p-2 rounded">
+                    <input type="date" name="Tanggal" required class="border p-2 rounded focus:ring-2 focus:ring-green-400">
+                    <select name="Tipe" required class="border p-2 rounded focus:ring-2 focus:ring-green-400">
                         <option value="Pemasukan">Pemasukan</option>
                         <option value="Pengeluaran">Pengeluaran</option>
                     </select>
-                    <input type="text" name="Kategori" placeholder="Kategori" required class="border p-2 rounded">
-                    <input type="text" name="Deskripsi" placeholder="Deskripsi" required class="border p-2 rounded">
-                    <input type="number" name="Jumlah (Rp)" placeholder="Jumlah (Rp)" required class="border p-2 rounded">
-                    <input type="text" name="Metode" placeholder="Metode" class="border p-2 rounded">
-                    <input type="text" name="Catatan" placeholder="Catatan tambahan" class="border p-2 rounded md:col-span-2">
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 col-span-1 md:col-span-3">Simpan Keuangan</button>
+                    <input type="text" name="Kategori" placeholder="Kategori (Cth: Dapur)" required class="border p-2 rounded focus:ring-2 focus:ring-green-400">
+                    <input type="text" name="Deskripsi" placeholder="Deskripsi" required class="border p-2 rounded focus:ring-2 focus:ring-green-400">
+                    <input type="number" name="Jumlah (Rp)" placeholder="Jumlah (Rp)" required class="border p-2 rounded focus:ring-2 focus:ring-green-400">
+                    <input type="text" name="Metode" placeholder="Metode (Cth: Cash)" class="border p-2 rounded focus:ring-2 focus:ring-green-400">
+                    <input type="text" name="Catatan" placeholder="Catatan tambahan" class="border p-2 rounded md:col-span-2 focus:ring-2 focus:ring-green-400">
+                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 col-span-1 md:col-span-3 transition shadow">Simpan Keuangan</button>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Data Keuangan</h2>
+                <h2 class="text-xl font-semibold mb-4 text-green-700">Data Keuangan</h2>
                 <table class="w-full text-left border-collapse"><thead id="thead-Keuangan"></thead><tbody id="tbody-Keuangan"></tbody></table>
             </div>
         </section>
 
-        <!-- TUGAS -->
+        <!-- ================= TUGAS ================= -->
         <section id="sec-Tugas" class="content-section hidden-section">
-            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Tambah Tugas</h2>
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 text-orange-600 flex items-center justify-center gap-5 flex-wrap text-2xl shadow-sm">
+                <i class="fa-solid fa-note-sticky icon-hover"></i>
+                <i class="fa-solid fa-book icon-hover"></i>
+                <i class="fa-solid fa-pencil icon-hover"></i>
+                <i class="fa-solid fa-pen-nib icon-hover"></i>
+                <i class="fa-solid fa-broom icon-hover"></i>
+                <i class="fa-solid fa-bucket icon-hover"></i>
+                <i class="fa-solid fa-jug-detergent icon-hover"></i>
+                <i class="fa-solid fa-shirt icon-hover"></i>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 border-t-4 border-orange-400">
+                <h2 class="text-xl font-semibold mb-4 text-orange-600">Tambah Tugas</h2>
                 <form id="form-Tugas" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Tugas')">
-                    <input type="text" name="ID Tugas" placeholder="ID" required class="border p-2 rounded">
-                    <input type="text" name="Nama Tugas" placeholder="Nama Tugas" required class="border p-2 rounded md:col-span-2">
-                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded">
-                    <input type="text" name="Penanggung Jawab" placeholder="PJ" class="border p-2 rounded">
-                    <input type="date" name="Deadline" required class="border p-2 rounded">
-                    <select name="Prioritas" class="border p-2 rounded"><option value="Tinggi">Tinggi</option><option value="Sedang" selected>Sedang</option><option value="Rendah">Rendah</option></select>
-                    <select name="Status" class="border p-2 rounded"><option value="Belum">Belum</option><option value="Proses">Proses</option><option value="Selesai">Selesai</option></select>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Simpan Tugas</button>
+                    <input type="text" name="ID Tugas" placeholder="ID (Cth: 1)" required class="border p-2 rounded focus:ring-2 focus:ring-orange-400">
+                    <input type="text" name="Nama Tugas" placeholder="Nama Tugas" required class="border p-2 rounded md:col-span-2 focus:ring-2 focus:ring-orange-400">
+                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded focus:ring-2 focus:ring-orange-400">
+                    <input type="text" name="Penanggung Jawab" placeholder="PJ (Cth: Ayah)" class="border p-2 rounded focus:ring-2 focus:ring-orange-400">
+                    <input type="date" name="Deadline" required class="border p-2 rounded focus:ring-2 focus:ring-orange-400">
+                    <select name="Prioritas" class="border p-2 rounded focus:ring-2 focus:ring-orange-400"><option value="Tinggi">Tinggi</option><option value="Sedang" selected>Sedang</option><option value="Rendah">Rendah</option></select>
+                    <select name="Status" class="border p-2 rounded focus:ring-2 focus:ring-orange-400"><option value="Belum">Belum</option><option value="Proses">Proses</option><option value="Selesai">Selesai</option></select>
+                    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition shadow">Simpan Tugas</button>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Daftar Tugas</h2>
+                <h2 class="text-xl font-semibold mb-4 text-orange-600">Daftar Tugas</h2>
                 <table class="w-full text-left border-collapse"><thead id="thead-Tugas"></thead><tbody id="tbody-Tugas"></tbody></table>
             </div>
         </section>
 
-        <!-- STOK -->
+        <!-- ================= STOK ================= -->
         <section id="sec-Stok" class="content-section hidden-section">
-            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Tambah Stok</h2>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-yellow-600 flex items-center justify-center gap-4 flex-wrap text-2xl shadow-sm">
+                <i class="fa-solid fa-bowl-food icon-hover"></i>
+                <i class="fa-solid fa-wheat-awn icon-hover"></i>
+                <i class="fa-solid fa-carrot icon-hover"></i>
+                <i class="fa-solid fa-wine-bottle icon-hover"></i>
+                <i class="fa-solid fa-baby icon-hover"></i>
+                <i class="fa-solid fa-toilet-paper icon-hover"></i>
+                <i class="fa-solid fa-droplet icon-hover"></i>
+                <i class="fa-solid fa-pump-soap icon-hover"></i>
+                <i class="fa-solid fa-spray-can icon-hover"></i>
+                <i class="fa-solid fa-soap icon-hover"></i>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 border-t-4 border-yellow-400">
+                <h2 class="text-xl font-semibold mb-4 text-yellow-600">Tambah Stok</h2>
                 <form id="form-Stok" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Stok')">
-                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded">
-                    <input type="text" name="Nama Barang" placeholder="Nama Barang" required class="border p-2 rounded md:col-span-2">
-                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded">
-                    <input type="text" name="Satuan" placeholder="Satuan (Cth: kg)" required class="border p-2 rounded">
-                    <input type="number" name="Stok Saat Ini" placeholder="Stok Saat Ini" required class="border p-2 rounded">
-                    <input type="number" name="Stok Minimum" placeholder="Stok Minimum" required class="border p-2 rounded">
-                    <input type="number" name="Estimasi Harga" placeholder="Estimasi Harga" class="border p-2 rounded">
-                    <select name="Prioritas" class="border p-2 rounded"><option value="Tinggi">Tinggi</option><option value="Sedang" selected>Sedang</option><option value="Rendah">Rendah</option></select>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Simpan Stok</button>
+                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded focus:ring-2 focus:ring-yellow-400">
+                    <input type="text" name="Nama Barang" placeholder="Nama Barang" required class="border p-2 rounded md:col-span-2 focus:ring-2 focus:ring-yellow-400">
+                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded focus:ring-2 focus:ring-yellow-400">
+                    <input type="text" name="Satuan" placeholder="Satuan (Cth: kg)" required class="border p-2 rounded focus:ring-2 focus:ring-yellow-400">
+                    <input type="number" name="Stok Saat Ini" placeholder="Stok Saat Ini" required class="border p-2 rounded focus:ring-2 focus:ring-yellow-400">
+                    <input type="number" name="Stok Minimum" placeholder="Stok Minimum" required class="border p-2 rounded focus:ring-2 focus:ring-yellow-400">
+                    <input type="number" name="Estimasi Harga" placeholder="Estimasi Harga" class="border p-2 rounded focus:ring-2 focus:ring-yellow-400">
+                    <select name="Prioritas" class="border p-2 rounded focus:ring-2 focus:ring-yellow-400"><option value="Tinggi">Tinggi</option><option value="Sedang" selected>Sedang</option><option value="Rendah">Rendah</option></select>
+                    <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition shadow">Simpan Stok</button>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Daftar Stok</h2>
+                <h2 class="text-xl font-semibold mb-4 text-yellow-600">Daftar Stok</h2>
                 <table class="w-full text-left border-collapse"><thead id="thead-Stok"></thead><tbody id="tbody-Stok"></tbody></table>
             </div>
         </section>
 
-        <!-- ASET -->
+        <!-- ================= ASET ================= -->
         <section id="sec-Aset" class="content-section hidden-section">
-            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Tambah Aset</h2>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-blue-600 flex items-center justify-center gap-6 text-2xl shadow-sm">
+                <i class="fa-solid fa-motorcycle icon-hover"></i>
+                <i class="fa-solid fa-key icon-hover"></i>
+                <i class="fa-solid fa-house-chimney icon-hover"></i>
+                <i class="fa-solid fa-mobile-screen icon-hover"></i>
+                <i class="fa-solid fa-laptop icon-hover"></i>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 border-t-4 border-blue-400">
+                <h2 class="text-xl font-semibold mb-4 text-blue-700">Tambah Aset</h2>
                 <form id="form-Aset" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Aset')">
-                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded">
-                    <input type="text" name="Nama Aset" placeholder="Nama Aset" required class="border p-2 rounded">
-                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded">
-                    <select name="Kondisi" class="border p-2 rounded"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option></select>
-                    <input type="date" name="Jadwal Servis/Cek" class="border p-2 rounded">
-                    <input type="number" name="Biaya Terakhir" placeholder="Biaya Terakhir" class="border p-2 rounded">
-                    <input type="text" name="Catatan" placeholder="Catatan" class="border p-2 rounded md:col-span-3">
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 md:col-span-3">Simpan Aset</button>
+                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded focus:ring-2 focus:ring-blue-400">
+                    <input type="text" name="Nama Aset" placeholder="Nama Aset" required class="border p-2 rounded focus:ring-2 focus:ring-blue-400">
+                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded focus:ring-2 focus:ring-blue-400">
+                    <select name="Kondisi" class="border p-2 rounded focus:ring-2 focus:ring-blue-400"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option></select>
+                    <input type="date" name="Jadwal Servis/Cek" class="border p-2 rounded focus:ring-2 focus:ring-blue-400">
+                    <input type="number" name="Biaya Terakhir" placeholder="Biaya Terakhir" class="border p-2 rounded focus:ring-2 focus:ring-blue-400">
+                    <input type="text" name="Catatan" placeholder="Catatan" class="border p-2 rounded md:col-span-3 focus:ring-2 focus:ring-blue-400">
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 md:col-span-3 transition shadow">Simpan Aset</button>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Daftar Aset</h2>
+                <h2 class="text-xl font-semibold mb-4 text-blue-700">Daftar Aset</h2>
                 <table class="w-full text-left border-collapse"><thead id="thead-Aset"></thead><tbody id="tbody-Aset"></tbody></table>
             </div>
         </section>
 
-        <!-- KESEHATAN -->
+        <!-- ================= KESEHATAN ================= -->
         <section id="sec-Kesehatan" class="content-section hidden-section">
-            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Catatan Kesehatan</h2>
+            <div class="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-6 text-teal-600 flex items-center justify-center gap-4 flex-wrap text-2xl shadow-sm">
+                <i class="fa-solid fa-hospital icon-hover"></i>
+                <i class="fa-solid fa-stethoscope icon-hover"></i>
+                <i class="fa-solid fa-prescription-bottle icon-hover"></i>
+                <i class="fa-solid fa-syringe icon-hover"></i>
+                <i class="fa-solid fa-calculator icon-hover"></i>
+                <i class="fa-solid fa-file-invoice-dollar icon-hover"></i>
+                <i class="fa-solid fa-pills icon-hover"></i>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 border-t-4 border-teal-400">
+                <h2 class="text-xl font-semibold mb-4 text-teal-700">Catatan Kesehatan</h2>
                 <form id="form-Kesehatan" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Kesehatan')">
-                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded">
-                    <input type="text" name="Nama Anggota" placeholder="Nama Anggota" required class="border p-2 rounded">
-                    <input type="text" name="Jenis Catatan" placeholder="Jenis" class="border p-2 rounded">
-                    <input type="text" name="Deskripsi" placeholder="Deskripsi" required class="border p-2 rounded">
-                    <input type="date" name="Tanggal" required class="border p-2 rounded">
-                    <select name="Status" class="border p-2 rounded"><option value="Terjadwal">Terjadwal</option><option value="Selesai">Selesai</option><option value="Habis">Habis</option></select>
-                    <input type="text" name="Catatan" placeholder="Catatan" class="border p-2 rounded md:col-span-3">
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 md:col-span-3">Simpan Catatan</button>
+                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded focus:ring-2 focus:ring-teal-400">
+                    <input type="text" name="Nama Anggota" placeholder="Nama Anggota" required class="border p-2 rounded focus:ring-2 focus:ring-teal-400">
+                    <input type="text" name="Jenis Catatan" placeholder="Jenis (Obat/Dokter)" class="border p-2 rounded focus:ring-2 focus:ring-teal-400">
+                    <input type="text" name="Deskripsi" placeholder="Deskripsi" required class="border p-2 rounded focus:ring-2 focus:ring-teal-400">
+                    <input type="date" name="Tanggal" required class="border p-2 rounded focus:ring-2 focus:ring-teal-400">
+                    <select name="Status" class="border p-2 rounded focus:ring-2 focus:ring-teal-400"><option value="Terjadwal">Terjadwal</option><option value="Selesai">Selesai</option><option value="Habis">Habis</option></select>
+                    <input type="text" name="Catatan" placeholder="Catatan" class="border p-2 rounded md:col-span-3 focus:ring-2 focus:ring-teal-400">
+                    <button type="submit" class="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600 md:col-span-3 transition shadow">Simpan Catatan</button>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Data Kesehatan</h2>
+                <h2 class="text-xl font-semibold mb-4 text-teal-700">Data Kesehatan</h2>
                 <table class="w-full text-left border-collapse"><thead id="thead-Kesehatan"></thead><tbody id="tbody-Kesehatan"></tbody></table>
             </div>
         </section>
 
-        <!-- TUJUAN -->
+        <!-- ================= TUJUAN ================= -->
         <section id="sec-Tujuan" class="content-section hidden-section">
-            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Tambah Tujuan</h2>
+            <div class="bg-blue-600 rounded-lg p-4 mb-6 text-white flex items-center justify-center gap-6 text-2xl shadow-md">
+                <i class="fa-solid fa-house icon-hover"></i>
+                <i class="fa-solid fa-plane icon-hover"></i>
+                <i class="fa-solid fa-car icon-hover"></i>
+                <i class="fa-solid fa-motorcycle icon-hover"></i>
+                <i class="fa-solid fa-utensils icon-hover"></i>
+                <i class="fa-solid fa-mug-hot icon-hover"></i>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6 border-t-4 border-blue-800">
+                <h2 class="text-xl font-semibold mb-4 text-blue-900">Tambah Tujuan</h2>
                 <form id="form-Tujuan" class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="submitData(event, 'Tujuan')">
-                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded">
-                    <input type="text" name="Nama Tujuan" placeholder="Nama Tujuan" required class="border p-2 rounded md:col-span-2">
-                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded">
-                    <input type="number" name="Target Dana (Rp)" placeholder="Target Dana" required class="border p-2 rounded">
-                    <input type="number" name="Dana Terkumpul (Rp)" placeholder="Dana Terkumpul" required class="border p-2 rounded">
-                    <input type="date" name="Target Waktu" class="border p-2 rounded">
-                    <select name="Status" class="border p-2 rounded"><option value="Berjalan">Berjalan</option><option value="Tercapai">Tercapai</option><option value="Dibatalkan">Dibatalkan</option></select>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 md:col-span-3">Simpan Tujuan</button>
+                    <input type="number" name="No" placeholder="No" required class="border p-2 rounded focus:ring-2 focus:ring-blue-800">
+                    <input type="text" name="Nama Tujuan" placeholder="Nama Tujuan" required class="border p-2 rounded md:col-span-2 focus:ring-2 focus:ring-blue-800">
+                    <input type="text" name="Kategori" placeholder="Kategori" class="border p-2 rounded focus:ring-2 focus:ring-blue-800">
+                    <input type="number" name="Target Dana (Rp)" placeholder="Target Dana" required class="border p-2 rounded focus:ring-2 focus:ring-blue-800">
+                    <input type="number" name="Dana Terkumpul (Rp)" placeholder="Dana Terkumpul" required class="border p-2 rounded focus:ring-2 focus:ring-blue-800">
+                    <input type="date" name="Target Waktu" class="border p-2 rounded focus:ring-2 focus:ring-blue-800">
+                    <select name="Status" class="border p-2 rounded focus:ring-2 focus:ring-blue-800"><option value="Berjalan">Berjalan</option><option value="Tercapai">Tercapai</option><option value="Dibatalkan">Dibatalkan</option></select>
+                    <button type="submit" class="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 md:col-span-3 transition shadow">Simpan Tujuan</button>
                 </form>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Daftar Tujuan</h2>
+                <h2 class="text-xl font-semibold mb-4 text-blue-900">Daftar Tujuan</h2>
                 <table class="w-full text-left border-collapse"><thead id="thead-Tujuan"></thead><tbody id="tbody-Tujuan"></tbody></table>
             </div>
         </section>
 
-        <div id="notif" class="fixed bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded shadow-lg hidden-section">Berhasil disimpan!</div>
+        <!-- Notifikasi -->
+        <div id="notif" class="fixed bottom-5 right-5 bg-gray-800 text-white px-6 py-3 rounded shadow-lg hidden-section z-50 font-medium">Berhasil disimpan!</div>
     </div>
 
     <script>
         // GANTI DENGAN URL YANG BERAKHIRAN /exec DARI MENU DEPLOY APPS SCRIPT
         const API_URL = "https://script.google.com/macros/s/AKfycbxMdNJqqHHSZi20qVlP0z4MHQzk7r47EZNWlnvWiMcc4h7BcKedEUPgskUppFotYzie/exec";
 
+        // Variabel global untuk menyimpan instance grafik agar bisa di-refresh
+        let chartPengeluaranInstance = null;
+        let chartTugasInstance = null;
+
+        const tabColors = {
+            'Dashboard': { active: 'text-gray-900 border-b-2 border-gray-900 bg-gray-100', inactive: 'text-gray-500 hover:text-gray-900' },
+            'Keuangan': { active: 'text-green-600 border-b-2 border-green-600 bg-green-50', inactive: 'text-gray-500 hover:text-green-600' },
+            'Tugas': { active: 'text-orange-500 border-b-2 border-orange-500 bg-orange-50', inactive: 'text-gray-500 hover:text-orange-500' },
+            'Stok': { active: 'text-yellow-600 border-b-2 border-yellow-600 bg-yellow-50', inactive: 'text-gray-500 hover:text-yellow-600' },
+            'Aset': { active: 'text-blue-600 border-b-2 border-blue-600 bg-blue-50', inactive: 'text-gray-500 hover:text-blue-600' },
+            'Kesehatan': { active: 'text-teal-600 border-b-2 border-teal-600 bg-teal-50', inactive: 'text-gray-500 hover:text-teal-600' },
+            'Tujuan': { active: 'text-blue-900 border-b-2 border-blue-900 bg-blue-100', inactive: 'text-gray-500 hover:text-blue-900' }
+        };
+
         function switchTab(tabName) {
             document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden-section'));
-            document.querySelectorAll('[id^="tab-"]').forEach(el => {
-                el.classList.remove('tab-active');
-                el.classList.add('text-gray-500');
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.className = 'tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-medium text-gray-500 transition-colors';
             });
+            
+            const activeTab = document.getElementById('tab-' + tabName);
+            activeTab.className = `tab-btn py-3 px-4 text-sm md:text-base whitespace-nowrap font-semibold ${tabColors[tabName].active}`;
+
             document.getElementById('sec-' + tabName).classList.remove('hidden-section');
-            document.getElementById('tab-' + tabName).classList.add('tab-active');
-            document.getElementById('tab-' + tabName).classList.remove('text-gray-500');
-            loadData(tabName);
+            
+            if (tabName === 'Dashboard') {
+                loadDashboard();
+            } else {
+                loadData(tabName);
+            }
         }
 
+        // --- FUNGSI LOAD DASHBOARD & GRAFIK ---
+        async function loadDashboard() {
+            try {
+                const [keuangan, tugas, stok, tujuan] = await Promise.all([
+                    fetch(`${API_URL}?sheet=Keuangan`).then(r => r.json()),
+                    fetch(`${API_URL}?sheet=Tugas`).then(r => r.json()),
+                    fetch(`${API_URL}?sheet=Stok`).then(r => r.json()),
+                    fetch(`${API_URL}?sheet=Tujuan`).then(r => r.json())
+                ]);
+
+                // 1. Hitung Saldo Keuangan
+                let saldo = 0;
+                if (Array.isArray(keuangan)) {
+                    keuangan.forEach(row => {
+                        const jml = Number(row['Jumlah (Rp)']) || 0;
+                        if (row['Tipe'] === 'Pemasukan') saldo += jml;
+                        else if (row['Tipe'] === 'Pengeluaran') saldo -= jml;
+                    });
+                }
+                document.getElementById('dash-saldo').innerText = 'Rp ' + saldo.toLocaleString('id-ID');
+
+                // 2. Hitung Tugas Aktif
+                let tugasAktif = 0;
+                let tugasBelum = 0, tugasProses = 0, tugasSelesai = 0;
+                if (Array.isArray(tugas)) {
+                    tugas.forEach(row => {
+                        if (row['Status'] === 'Belum') tugasBelum++;
+                        else if (row['Status'] === 'Proses') tugasProses++;
+                        else if (row['Status'] === 'Selesai') tugasSelesai++;
+                    });
+                    tugasAktif = tugasBelum + tugasProses;
+                }
+                document.getElementById('dash-tugas').innerText = tugasAktif + ' Tugas';
+
+                // 3. Hitung Stok Kritis
+                let stokKritis = 0;
+                if (Array.isArray(stok)) {
+                    stokKritis = stok.filter(row => {
+                        const stokSaatIni = Number(row['Stok Saat Ini']) || 0;
+                        const stokMin = Number(row['Stok Minimum']) || 0;
+                        return stokSaatIni <= stokMin || row['Status'] === 'Habis' || row['Status'] === 'Perlu Beli';
+                    }).length;
+                }
+                document.getElementById('dash-stok').innerText = stokKritis + ' Barang';
+
+                // 4. Hitung Total Dana Tujuan
+                let totalDana = 0;
+                if (Array.isArray(tujuan)) {
+                    tujuan.forEach(row => {
+                        totalDana += Number(row['Dana Terkumpul (Rp)']) || 0;
+                    });
+                }
+                document.getElementById('dash-tujuan').innerText = 'Rp ' + totalDana.toLocaleString('id-ID');
+
+                // 5. Render Grafik Pengeluaran
+                renderPieChart(keuangan);
+
+                // 6. Render Grafik Tugas
+                renderBarChart(tugasBelum, tugasProses, tugasSelesai);
+
+            } catch (error) {
+                console.error("Gagal memuat dashboard:", error);
+                document.getElementById('dash-saldo').innerText = 'Error';
+            }
+        }
+
+        function renderPieChart(dataKeuangan) {
+            const ctx = document.getElementById('chartPengeluaran').getContext('2d');
+            const pieContainer = document.getElementById('pieContainer');
+            const emptyMsg = document.getElementById('emptyPieMsg');
+
+            // Hancurkan grafik lama jika ada (mencegah tumpang tindih)
+            if (chartPengeluaranInstance) chartPengeluaranInstance.destroy();
+
+            let kategoriData = {};
+            if (Array.isArray(dataKeuangan)) {
+                dataKeuangan.forEach(row => {
+                    if (row['Tipe'] === 'Pengeluaran') {
+                        let kat = row['Kategori'] || 'Lainnya';
+                        let jml = Number(row['Jumlah (Rp)']) || 0;
+                        kategoriData[kat] = (kategoriData[kat] || 0) + jml;
+                    }
+                });
+            }
+
+            const labels = Object.keys(kategoriData);
+            const dataValues = Object.values(kategoriData);
+
+            if (labels.length === 0) {
+                pieContainer.classList.add('hidden-section');
+                emptyMsg.classList.remove('hidden-section');
+                return;
+            } else {
+                pieContainer.classList.remove('hidden-section');
+                emptyMsg.classList.add('hidden-section');
+            }
+
+            // Palet warna hijau/soft untuk keuangan
+            const bgColors = ['#34d399', '#10b981', '#059669', '#6ee7b7', '#a7f3d0', '#047857', '#065f46'];
+
+            chartPengeluaranInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: bgColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) label += ': ';
+                                    const value = context.parsed;
+                                    label += 'Rp ' + value.toLocaleString('id-ID');
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderBarChart(belum, proses, selesai) {
+            const ctx = document.getElementById('chartTugas').getContext('2d');
+            const barContainer = document.getElementById('barContainer');
+            const emptyMsg = document.getElementById('emptyBarMsg');
+
+            if (chartTugasInstance) chartTugasInstance.destroy();
+
+            if (belum === 0 && proses === 0 && selesai === 0) {
+                barContainer.classList.add('hidden-section');
+                emptyMsg.classList.remove('hidden-section');
+                return;
+            } else {
+                barContainer.classList.remove('hidden-section');
+                emptyMsg.classList.add('hidden-section');
+            }
+
+            chartTugasInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Belum', 'Proses', 'Selesai'],
+                    datasets: [{
+                        label: 'Jumlah Tugas',
+                        data: [belum, proses, selesai],
+                        backgroundColor: ['#fb923c', '#fbbf24', '#34d399'], // Oranye, Kuning, Hijau
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- FUNGSI LOAD DATA TABEL ---
         async function loadData(sheetName) {
             const thead = document.getElementById('thead-' + sheetName);
             const tbody = document.getElementById('tbody-' + sheetName);
-            tbody.innerHTML = '<tr><td colspan="10" class="text-center p-4">Memuat data...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center p-4 text-gray-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat data...</td></tr>';
 
             try {
                 const response = await fetch(`${API_URL}?sheet=${sheetName}`);
@@ -192,7 +519,7 @@
 
                 const headers = Object.keys(data[0]);
                 thead.innerHTML = '<tr class="bg-gray-100 border-b">' + 
-                    headers.map(h => `<th class="p-2 text-sm font-semibold">${h}</th>`).join('') + 
+                    headers.map(h => `<th class="p-2 text-sm font-semibold text-gray-700">${h}</th>`).join('') + 
                     '</tr>';
 
                 tbody.innerHTML = data.reverse().map(row => {
@@ -205,23 +532,24 @@
                             if (h.includes('Rp') && val) {
                                 val = 'Rp ' + Number(val).toLocaleString('id-ID');
                             }
-                            return `<td class="p-2 text-sm">${val}</td>`;
+                            return `<td class="p-2 text-sm text-gray-600">${val}</td>`;
                         }).join('') + 
                     '</tr>';
                 }).join('');
 
             } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500">Gagal memuat data. Periksa URL API Anda.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center p-4 text-red-500">Gagal memuat data. Periksa koneksi atau URL API.</td></tr>`;
             }
         }
 
+        // --- FUNGSI SIMPAN DATA ---
         async function submitData(event, sheetName) {
             event.preventDefault();
             const form = event.target;
             const btn = form.querySelector('button[type="submit"]');
-            const originalText = btn.innerText;
+            const originalText = btn.innerHTML;
             
-            btn.innerText = "Menyimpan...";
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Menyimpan...';
             btn.disabled = true;
 
             const formData = new FormData(form);
@@ -231,8 +559,6 @@
             });
 
             try {
-                // Gunakan mode 'no-cors' jika mengalami kendala CORS, 
-                // tapi secara default Google Apps Script bisa menerima POST
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -245,7 +571,7 @@
                 
                 if (result.status === "success") {
                     form.reset();
-                    showNotif("✅ Data berhasil disimpan ke " + sheetName);
+                    showNotif("Data berhasil disimpan!");
                     loadData(sheetName); 
                 } else {
                     alert("Gagal dari server: " + result.message);
@@ -254,19 +580,19 @@
                 alert("Error koneksi: Pastikan URL API benar dan Deployment diset ke 'Anyone'.");
                 console.error(error);
             } finally {
-                btn.innerText = originalText;
+                btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         }
 
         function showNotif(msg) {
             const notif = document.getElementById('notif');
-            notif.innerText = msg;
+            notif.innerHTML = `<i class="fa-solid fa-circle-check text-green-400 mr-2"></i>${msg}`;
             notif.classList.remove('hidden-section');
             setTimeout(() => notif.classList.add('hidden-section'), 3000);
         }
 
-        window.onload = () => { switchTab('Keuangan'); };
+        window.onload = () => { switchTab('Dashboard'); };
     </script>
 </body>
 </html>
